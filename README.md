@@ -4,9 +4,6 @@
 
 친구, 동료들과 함께 즐기는 간단하고 직관적인 룰렛 앱입니다. Flutter로 개발되었으며, Google Play Store를 통해 누구나 다운로드하여 사용할 수 있습니다.
 
-![앱 시연 GIF](https://apps.google.com/store/apps/details?id=com.malee.bokboolbok_roulette)
-> _Tip: 앱을 시연하는 GIF 파일을 만들어 위 이미지 링크를 교체하면 훨씬 멋진 README가 됩니다._
-
 <br>
 
 ## ✨ 주요 기능 (Features)
