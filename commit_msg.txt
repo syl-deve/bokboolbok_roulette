@@ -1,1 +1,1 @@
-README 업데이트 및 이미지 추가
+﻿fix: l10n.yaml synthetic-package 제거, Kotlin 2.1.0 업그레이드, Gradle OOM 해결
