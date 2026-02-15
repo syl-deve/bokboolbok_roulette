@@ -7,7 +7,7 @@ val keystoreProperties = Properties().apply {
     if (file.exists()) {
         load(FileInputStream(file))
     } else {
-        println("❗ key.properties 파일을 찾을 수 없습니다.")
+        println("❗ key.properties file not found.")
     }
 }
 

@@ -9,7 +9,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 // ✅ 추가: Localization 지원
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:bokboolbok_roulette/l10n/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
