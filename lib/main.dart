@@ -7,14 +7,38 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-// ✅ 추가: Localization 지원
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:bokboolbok_roulette/l10n/app_localizations.dart';
+
+// ─── Design tokens ────────────────────────────────────────────────────────────
+const Color _kBg      = Color(0xFF0F172A);
+const Color _kSurface = Color(0xFF1E293B);
+const Color _kCard    = Color(0xFF334155);
+const Color _kBorder  = Color(0xFF475569);
+const Color _kText    = Color(0xFFF1F5F9);
+const Color _kTextSub = Color(0xFF94A3B8);
+const Color _kBlue    = Color(0xFF3B82F6);
+const Color _kEmerald = Color(0xFF10B981);
+
+const List<Color> _kWheelColors = [
+  Color(0xFFEF4444),
+  Color(0xFFF97316),
+  Color(0xFFEAB308),
+  Color(0xFF22C55E),
+  Color(0xFF06B6D4),
+  Color(0xFF3B82F6),
+  Color(0xFF8B5CF6),
+  Color(0xFFD946EF),
+  Color(0xFFF43F5E),
+];
+// ─────────────────────────────────────────────────────────────────────────────
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   MobileAds.instance.initialize();
-  RequestConfiguration configuration = RequestConfiguration(testDeviceIds: ['D86D9B1F092E7C8CC61591C0B2B19CFE']);
+  RequestConfiguration configuration = RequestConfiguration(
+    testDeviceIds: ['D86D9B1F092E7C8CC61591C0B2B19CFE'],
+  );
   MobileAds.instance.updateRequestConfiguration(configuration);
   AdHelper.loadInterstitialAd();
   final playerProvider = PlayerProvider();
@@ -24,29 +48,46 @@ void main() async {
       create: (_) => playerProvider,
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        // locale: const Locale('en'), // ← 여기에 강제로 영어 설정
-
-        // ✅ Localization 추가
         localizationsDelegates: const [
           AppLocalizations.delegate,
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        supportedLocales: const [
-          Locale('en'),
-          Locale('ko'),
-        ],
-
+        supportedLocales: const [Locale('en'), Locale('ko')],
         theme: ThemeData(
-          scaffoldBackgroundColor: const Color(0xFFF7FDFC),
-          colorScheme: ColorScheme.fromSwatch(
-            primarySwatch: Colors.teal,
-            accentColor: Colors.orangeAccent,
+          brightness: Brightness.dark,
+          scaffoldBackgroundColor: _kBg,
+          colorScheme: const ColorScheme.dark(
+            primary: _kBlue,
+            secondary: _kEmerald,
+            surface: _kSurface,
+            onPrimary: Colors.white,
+            onSecondary: Colors.white,
+            onSurface: _kText,
+          ),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: _kSurface,
+            foregroundColor: _kText,
+            elevation: 0,
+            centerTitle: false,
+            titleTextStyle: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: _kText,
+            ),
+          ),
+          cardTheme: CardThemeData(
+            color: _kCard,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            elevation: 0,
+            margin: EdgeInsets.zero,
           ),
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color.fromARGB(255, 81, 146, 231),
+              backgroundColor: _kBlue,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -58,45 +99,45 @@ void main() async {
               ),
             ),
           ),
-          textButtonTheme: TextButtonThemeData(
-            style: TextButton.styleFrom(
-              foregroundColor: const Color.fromARGB(255, 0, 102, 255),
-              textStyle: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
           inputDecorationTheme: InputDecorationTheme(
             filled: true,
-            fillColor: Colors.white,
+            fillColor: _kBg,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.teal),
+              borderSide: const BorderSide(color: _kBorder),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.teal.shade200),
+              borderSide: const BorderSide(color: _kBorder),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.teal.shade600, width: 2),
+              borderSide: const BorderSide(color: _kBlue, width: 2),
             ),
+            labelStyle: const TextStyle(color: _kTextSub),
+            hintStyle: const TextStyle(color: _kBorder),
+            prefixIconColor: _kTextSub,
+            suffixIconColor: _kTextSub,
           ),
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Colors.white,
-            foregroundColor: Colors.black87,
-            elevation: 0.5,
-            titleTextStyle: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
+          bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+            backgroundColor: _kSurface,
+            selectedItemColor: _kBlue,
+            unselectedItemColor: _kTextSub,
+            elevation: 0,
+          ),
+          dividerColor: _kBorder,
+          iconTheme: const IconThemeData(color: _kTextSub),
+          textButtonTheme: TextButtonThemeData(
+            style: TextButton.styleFrom(foregroundColor: _kBlue),
           ),
         ),
-        home: const MainScreen(),
+        home: const HomeScreen(),
       ),
     ),
   );
 }
-// ✅ AdHelper
+
+// ─── AdHelper ─────────────────────────────────────────────────────────────────
 class AdHelper {
   static InterstitialAd? _interstitialAd;
   static bool _isAdLoaded = false;
@@ -107,10 +148,8 @@ class AdHelper {
     _interstitialAd?.dispose();
     _interstitialAd = null;
     _isAdLoaded = false;
-
     InterstitialAd.load(
       adUnitId: 'ca-app-pub-3960681231120180/2725744412',
-      // adUnitId: 'ca-app-pub-3940256099942544/1033173712',
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
@@ -151,7 +190,7 @@ class AdHelper {
   }
 }
 
-// ✅ MyBannerAd
+// ─── MyBannerAd ───────────────────────────────────────────────────────────────
 class MyBannerAd extends StatefulWidget {
   const MyBannerAd({super.key});
 
@@ -167,13 +206,12 @@ class _MyBannerAdState extends State<MyBannerAd> {
     super.initState();
     _bannerAd = BannerAd(
       adUnitId: 'ca-app-pub-3960681231120180/2821709658',
-      // adUnitId: 'ca-app-pub-3940256099942544/6300978111',
       size: AdSize.banner,
       request: const AdRequest(),
       listener: BannerAdListener(
         onAdLoaded: (_) => setState(() {}),
         onAdFailedToLoad: (ad, error) {
-          print('Ad failed to load: $error');
+          debugPrint('Ad failed to load: $error');
           ad.dispose();
         },
       ),
@@ -197,7 +235,7 @@ class _MyBannerAdState extends State<MyBannerAd> {
   }
 }
 
-// ✅ Player, PlayerProvider
+// ─── Data ─────────────────────────────────────────────────────────────────────
 class Player {
   final String name;
   Player(this.name);
@@ -247,17 +285,14 @@ class PlayerProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  String _encodeHistory() {
-    return _history.entries.map((e) => '${e.key}:${e.value}').join('|');
-  }
+  String _encodeHistory() =>
+      _history.entries.map((e) => '${e.key}:${e.value}').join('|');
 
   Map<String, int> _decodeHistory(String encoded) {
     final Map<String, int> map = {};
     for (final pair in encoded.split('|')) {
       final parts = pair.split(':');
-      if (parts.length == 2) {
-        map[parts[0]] = int.tryParse(parts[1]) ?? 0;
-      }
+      if (parts.length == 2) map[parts[0]] = int.tryParse(parts[1]) ?? 0;
     }
     return map;
   }
@@ -275,151 +310,23 @@ class PlayerProvider with ChangeNotifier {
     notifyListeners();
   }
 }
-// ✅ MainScreen
-class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+
+// ─── HomeScreen ───────────────────────────────────────────────────────────────
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0;
-
-  final List<Widget> _pages = [
-    const ParticipantsPage(),
-    const RoulettePage(),
-    const HistoryPage(),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: _pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        selectedItemColor: const Color.fromARGB(255, 81, 146, 231),
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        items: [
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.group),
-            label: AppLocalizations.of(context)!.participants,
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.casino),
-            label: AppLocalizations.of(context)!.roulette,
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.history),
-            label: AppLocalizations.of(context)!.history,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ✅ ParticipantsPage
-class ParticipantsPage extends StatefulWidget {
-  const ParticipantsPage({super.key});
-
-  @override
-  State<ParticipantsPage> createState() => _ParticipantsPageState();
-}
-
-class _ParticipantsPageState extends State<ParticipantsPage> {
+class _HomeScreenState extends State<HomeScreen> {
+  // Participant input
   final TextEditingController _controller = TextEditingController();
 
-  @override
-  Widget build(BuildContext context) {
-    final provider = Provider.of<PlayerProvider>(context);
-    final players = provider.players;
+  // Scroll
+  final ScrollController _scrollController = ScrollController();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("👥 ${AppLocalizations.of(context)!.participants}"),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  TextField(
-                    controller: _controller,
-                    onSubmitted: (value) {
-                      provider.addPlayer(value);
-                      _controller.clear();
-                    },
-                    decoration: InputDecoration(
-                      labelText: AppLocalizations.of(context)!.enterParticipantName,
-                      hintText: AppLocalizations.of(context)!.exampleName,
-                      prefixIcon: const Icon(Icons.person_add_alt),
-                      suffixIcon: IconButton(
-                        icon: const Icon(Icons.check),
-                        onPressed: () {
-                          provider.addPlayer(_controller.text);
-                          _controller.clear();
-                        },
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: players.isEmpty
-                        ? Center(child: Text(AppLocalizations.of(context)!.noParticipants))
-                        : ListView.builder(
-                            itemCount: players.length,
-                            itemBuilder: (context, index) {
-                              return Card(
-                                margin: const EdgeInsets.symmetric(vertical: 6),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: ListTile(
-                                  leading: CircleAvatar(
-                                    backgroundColor: Colors.teal.shade100,
-                                    child: Text(
-                                      players[index].name.characters.first,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                  title: Text(players[index].name),
-                                  trailing: IconButton(
-                                    icon: const Icon(Icons.delete,
-                                        color: Color.fromARGB(255, 245, 56, 43)),
-                                    onPressed: () =>
-                                        provider.removePlayer(index),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const MyBannerAd(),
-        ],
-      ),
-    );
-  }
-}
-class RoulettePage extends StatefulWidget {
-  const RoulettePage({super.key});
-
-  @override
-  State<RoulettePage> createState() => _RoulettePageState();
-}
-
-class _RoulettePageState extends State<RoulettePage> {
+  // Roulette state
   final StreamController<int> _selected = StreamController<int>.broadcast();
   late ConfettiController _confettiController;
   final Random _random = Random();
@@ -433,27 +340,43 @@ class _RoulettePageState extends State<RoulettePage> {
   @override
   void initState() {
     super.initState();
-    _confettiController = ConfettiController(duration: const Duration(seconds: 2));
+    _confettiController =
+        ConfettiController(duration: const Duration(seconds: 2));
   }
 
   @override
   void dispose() {
+    _controller.dispose();
+    _scrollController.dispose();
     _selected.close();
     _confettiController.dispose();
     super.dispose();
   }
 
+  void _scrollToBottom() {
+    Future.delayed(const Duration(milliseconds: 150), () {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  // ── Roulette logic ──────────────────────────────────────────────────────────
   void _startSpinning(List<Player> p) {
     if (_isSpinning || p.length < 2) return;
-
     setState(() {
       _isSpinning = true;
       players = p;
       selectedIndexes.clear();
       confirmedIndexes.clear();
     });
-
     AdHelper.showInterstitialAd(() {
+      FocusScope.of(context).unfocus();
+      _scrollToBottom();
       if (spinCount == 1) {
         resultIndex = 0;
         _selected.add(resultIndex!);
@@ -471,11 +394,40 @@ class _RoulettePageState extends State<RoulettePage> {
 
     if (selectedIndexes.length >= spinCount || available.isEmpty) {
       setState(() => _isSpinning = false);
+      if (confirmedIndexes.isNotEmpty && mounted) {
+        Future.delayed(const Duration(milliseconds: 300), _showWinnerDialog);
+      }
       return;
     }
-
     resultIndex = available[_random.nextInt(available.length)];
     _selected.add(resultIndex!);
+  }
+
+  void _showWinnerDialog() {
+    if (!mounted) return;
+    final winners = confirmedIndexes.map((i) => players[i]).toList();
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.7),
+      builder: (ctx) => _WinnerDialog(
+        winners: winners,
+        onClose: () {
+          Navigator.pop(ctx);
+          _resetGame();
+          FocusScope.of(context).unfocus();
+          _scrollToBottom();
+        },
+        onSpinAgain: () {
+          Navigator.pop(ctx);
+          _resetGame();
+          FocusScope.of(context).unfocus();
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (mounted) _startSpinning(players);
+          });
+        },
+      ),
+    );
   }
 
   void _resetGame() {
@@ -487,256 +439,506 @@ class _RoulettePageState extends State<RoulettePage> {
     });
   }
 
-  String _ordinal(int n) {
-    const units = [
-      '첫번째', '두번째', '세번째', '네번째', '다섯번째',
-      '여섯번째', '일곱번째', '여덟번째', '아홉번째', '열번째'
-    ];
-    return n <= units.length ? units[n - 1] : '$n번째';
+  // ── History sheet ───────────────────────────────────────────────────────────
+  void _showHistorySheet(BuildContext context, AppLocalizations l10n) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: _kSurface,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => _HistorySheet(l10n: l10n),
+    );
   }
 
+  // ── Build ───────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return Consumer<PlayerProvider>(
       builder: (context, provider, _) {
         final p = provider.players;
-
-        if (p.length > 1 && spinCount >= p.length) {
-          spinCount = p.length - 1;
-        }
+        if (p.length > 1 && spinCount >= p.length) spinCount = p.length - 1;
+        final l10n = AppLocalizations.of(context)!;
 
         return Scaffold(
           appBar: AppBar(
-            title: Text("🎯 ${AppLocalizations.of(context)!.roulette}"),
+            title: Row(
+              children: [
+                const Icon(Icons.casino, color: _kBlue, size: 22),
+                const SizedBox(width: 8),
+                _GradientText(
+                  'Luck Roulette',
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
           ),
           body: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: Stack(
-                  alignment: Alignment.center,
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+              // ── Top section ─────────────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Column(
-                      children: [
-                        const SizedBox(height: 8),
-                        // 당첨자 수 + 돌리기 버튼
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text('${AppLocalizations.of(context)!.winner}:'),
-                            const SizedBox(width: 8),
-                            Opacity(
-                              opacity: _isSpinning ? 0.5 : 1.0,
-                              child: IgnorePointer(
-                                ignoring: _isSpinning,
-                                child: DropdownButton<int>(
-                                  value: spinCount,
-                                  onChanged: (value) {
-                                    if (value != null) {
-                                      setState(() {
-                                        spinCount = value;
-                                        _resetGame();
-                                      });
-                                    }
-                                  },
-                                  items: List.generate(
-                                    p.length <= 1 ? 1 : p.length - 1,
-                                    (i) => DropdownMenuItem(
-                                      value: i + 1,
-                                      child: Text('${i + 1}${AppLocalizations.of(context)!.personUnit}'),
-                                    ),
-                                  ),
+                    // Input row
+                    Container(
+                      decoration: BoxDecoration(
+                        color: _kSurface,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: _kBorder),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _controller,
+                              onSubmitted: (_) {
+                                provider.addPlayer(_controller.text);
+                                _controller.clear();
+                              },
+                              style: const TextStyle(color: _kText),
+                              decoration: InputDecoration(
+                                hintText: l10n.enterParticipantName,
+                                border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                filled: false,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 13,
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            if (!_isSpinning && AdHelper.isAdReady() && p.length >= 2)
-                              ElevatedButton.icon(
-                                onPressed: () {
-                                  _resetGame();
-                                  _startSpinning(p);
-                                },
-                                icon: const Icon(Icons.play_arrow),
-                                label: Text(AppLocalizations.of(context)!.spinRoulette),
-                              ),
-                            if (_isSpinning)
-                              const Padding(
-                                padding: EdgeInsets.only(left: 12),
-                                child: SizedBox(
-                                  width: 30,
-                                  height: 30,
-                                  child: Center(
-                                    child: AspectRatio(
-                                      aspectRatio: 1,
-                                      child: CircularProgressIndicator(strokeWidth: 3),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        // 룰렛
-                        AspectRatio(
-                          aspectRatio: 1,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: RadialGradient(
-                                  colors: [
-                                    Colors.grey.shade300,
-                                    Colors.white,
-                                  ],
-                                  center: Alignment.topLeft,
-                                  radius: 1.2,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    offset: const Offset(0, 8),
-                                    blurRadius: 12,
-                                  ),
-                                  BoxShadow(
-                                    color: Colors.tealAccent.withOpacity(0.3),
-                                    spreadRadius: 2,
-                                    blurRadius: 15,
-                                  ),
-                                ],
-                              ),
-                              padding: const EdgeInsets.all(12),
-                              child: p.length < 2
-                                  ? Center(
-                                      child: Text(AppLocalizations.of(context)!.noParticipants),
-                                    )
-                                  : FortuneWheel(
-                                      selected: _selected.stream,
-                                      animateFirst: false,
-                                      indicators: const [
-                                        FortuneIndicator(
-                                          alignment: Alignment.topCenter,
-                                          child: TriangleIndicator(
-                                            color: Colors.redAccent,
-                                            width: 24,
-                                            height: 24,
-                                          ),
-                                        ),
-                                      ],
-                                      physics: CircularPanPhysics(
-                                        duration: const Duration(seconds: 2),
-                                        curve: Curves.easeOutCubic,
-                                      ),
-                                      items: p.asMap().entries.map((e) {
-                                        final pastelColors = [
-                                          Colors.amber.shade100,
-                                          Colors.cyan.shade100,
-                                          Colors.pink.shade100,
-                                          Colors.lime.shade100,
-                                          Colors.indigo.shade100,
-                                          Colors.deepOrange.shade100,
-                                          Colors.green.shade100,
-                                          Colors.purple.shade100,
-                                          Colors.blue.shade100,
-                                          Colors.teal.shade100,
-                                        ];
-                                        final borderColors = [
-                                          Colors.amber.shade400,
-                                          Colors.cyan.shade400,
-                                          Colors.pink.shade400,
-                                          Colors.lime.shade400,
-                                          Colors.indigo.shade400,
-                                          Colors.deepOrange.shade400,
-                                          Colors.green.shade400,
-                                          Colors.purple.shade400,
-                                          Colors.blue.shade400,
-                                          Colors.teal.shade400,
-                                        ];
-                                        return FortuneItem(
-                                          child: Transform.scale(
-                                            scale: 1.2,
-                                            child: Text(
-                                              e.value.name,
-                                              style: const TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.black,
-                                              ),
-                                            ),
-                                          ),
-                                          style: FortuneItemStyle(
-                                            color: pastelColors[e.key % pastelColors.length],
-                                            borderColor: borderColors[e.key % borderColors.length],
-                                            borderWidth: 3,
-                                          ),
-                                        );
-                                      }).toList(),
-                                      onAnimationEnd: () {
-                                        if (resultIndex == null || resultIndex! >= p.length) return;
-
-                                        final confirmedIndex = resultIndex!;
-                                        final name = p[confirmedIndex].name;
-
-                                        provider.addHistory(name);
-
-                                        setState(() {
-                                          selectedIndexes.add(confirmedIndex);
-                                          confirmedIndexes.add(confirmedIndex);
-                                        });
-
-                                        if (confirmedIndexes.length == spinCount) {
-                                          _confettiController.play();
-                                        }
-
-                                        Future.delayed(const Duration(milliseconds: 800), _spinNext);
-                                      },
-                                    ),
                             ),
                           ),
+                          GestureDetector(
+                            onTap: () {
+                              provider.addPlayer(_controller.text);
+                              _controller.clear();
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.all(6),
+                              padding: const EdgeInsets.all(9),
+                              decoration: BoxDecoration(
+                                color: _kBlue,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(
+                                Icons.add,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // No. of Winners stepper
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 9,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _kSurface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: _kBorder),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'No. of Winners',
+                            style: const TextStyle(
+                              color: _kText,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              _StepperButton(
+                                icon: Icons.remove,
+                                onPressed: _isSpinning || spinCount <= 1
+                                    ? null
+                                    : () {
+                                        setState(() => spinCount--);
+                                        _resetGame();
+                                      },
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                child: Text(
+                                  '$spinCount',
+                                  style: const TextStyle(
+                                    color: _kEmerald,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 17,
+                                  ),
+                                ),
+                              ),
+                              _StepperButton(
+                                icon: Icons.add,
+                                onPressed: _isSpinning ||
+                                        p.length <= 1 ||
+                                        spinCount >= p.length - 1
+                                    ? null
+                                    : () {
+                                        setState(() => spinCount++);
+                                        _resetGame();
+                                      },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Participants header
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${l10n.participants.toUpperCase()} (${p.length})',
+                          style: const TextStyle(
+                            color: _kTextSub,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.8,
+                          ),
                         ),
-                        const SizedBox(height: 12),
-                        // 당첨자 리스트
-                        Expanded(
-                          child: confirmedIndexes.isNotEmpty
-                              ? ListView.builder(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                                  itemCount: confirmedIndexes.length,
-                                  itemBuilder: (context, index) {
-                                    final name = p[confirmedIndexes[index]].name;
-                                    return Card(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      elevation: 2,
-                                      margin: const EdgeInsets.symmetric(vertical: 4),
-                                      child: ListTile(
-                                        leading: Icon(
-                                          Icons.emoji_events,
-                                          color: Colors.orange.shade800,
-                                        ),
-                                        title: Text('${_ordinal(index + 1)} 당첨자: $name'),
-                                      ),
-                                    );
-                                  },
-                                )
-                              : const SizedBox.shrink(),
-                        ),
+                        if (p.isNotEmpty)
+                          GestureDetector(
+                            onTap: () {
+                              for (var i = p.length - 1; i >= 0; i--) {
+                                provider.removePlayer(i);
+                              }
+                            },
+                            child: const Text(
+                              'Clear All',
+                              style: TextStyle(
+                                color: Color(0xFFF87171),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
-                    // 축하 이펙트
-                    ConfettiWidget(
-                      confettiController: _confettiController,
-                      blastDirectionality: BlastDirectionality.explosive,
-                      shouldLoop: false,
-                      emissionFrequency: 0.05,
-                      numberOfParticles: 30,
-                      maxBlastForce: 20,
-                      minBlastForce: 5,
-                      gravity: 0.3,
+                    const SizedBox(height: 6),
+
+                    // Participants list (전체 표시, 제한 없음)
+                    if (p.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          l10n.noParticipants,
+                          style: const TextStyle(
+                            color: _kTextSub,
+                            fontStyle: FontStyle.italic,
+                            fontSize: 13,
+                          ),
+                        ),
+                      )
+                    else
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: p.length,
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: 6),
+                        itemBuilder: (context, index) {
+                          final color =
+                              _kWheelColors[index % _kWheelColors.length];
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: _kCard,
+                              borderRadius: BorderRadius.circular(9),
+                              border: Border(
+                                left: BorderSide(color: color, width: 4),
+                              ),
+                            ),
+                            child: ListTile(
+                              dense: true,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 0,
+                              ),
+                              title: Text(
+                                p[index].name,
+                                style: const TextStyle(
+                                  color: _kText,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              trailing: GestureDetector(
+                                onTap: () => provider.removePlayer(index),
+                                child: const Icon(
+                                  Icons.close,
+                                  color: _kTextSub,
+                                  size: 18,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    // History button — 참가자 목록 바로 아래
+                    const SizedBox(height: 4),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _showHistorySheet(context, l10n),
+                        icon: const Icon(
+                          Icons.history,
+                          size: 15,
+                          color: _kTextSub,
+                        ),
+                        label: Text(
+                          l10n.history,
+                          style: const TextStyle(
+                            color: _kTextSub,
+                            fontSize: 13,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          side: const BorderSide(color: _kBorder),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
-              const MyBannerAd(), // ✅ 하단에 광고 추가
+
+              // ── Wheel section ───────────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Wheel (AspectRatio로 정사각형 고정)
+                    Stack(
+                      children: [
+                        AspectRatio(
+                          aspectRatio: 1,
+                          child: Stack(
+                            children: [
+                              // 외곽 림(rim) — 그라디언트 + 입체 그림자
+                              Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: const SweepGradient(
+                                    colors: [
+                                      Color(0xFFFFFFFF),
+                                      Color(0xFFCCCCCC),
+                                      Color(0xFFFFFFFF),
+                                      Color(0xFF999999),
+                                      Color(0xFFFFFFFF),
+                                    ],
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: _kBlue.withOpacity(0.55),
+                                      spreadRadius: 5,
+                                      blurRadius: 28,
+                                    ),
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.7),
+                                      offset: const Offset(0, 10),
+                                      blurRadius: 24,
+                                      spreadRadius: 2,
+                                    ),
+                                    BoxShadow(
+                                      color: Colors.white.withOpacity(0.12),
+                                      offset: const Offset(-3, -6),
+                                      blurRadius: 14,
+                                      spreadRadius: -2,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // 휠 (림 안쪽에 패딩으로 띄움)
+                              Padding(
+                                padding: const EdgeInsets.all(7),
+                                child: p.length < 2
+                                    ? Center(
+                                        child: Text(
+                                          l10n.noParticipants,
+                                          style: const TextStyle(
+                                            color: _kTextSub,
+                                          ),
+                                        ),
+                                      )
+                                    : FortuneWheel(
+                                        selected: _selected.stream,
+                                        animateFirst: false,
+                                        indicators: const [
+                                          FortuneIndicator(
+                                            alignment: Alignment.topCenter,
+                                            child: TriangleIndicator(
+                                              color: Colors.white,
+                                              width: 28,
+                                              height: 28,
+                                            ),
+                                          ),
+                                        ],
+                                        physics: CircularPanPhysics(
+                                          duration:
+                                              const Duration(seconds: 2),
+                                          curve: Curves.easeOutCubic,
+                                        ),
+                                        items: p.asMap().entries.map((e) {
+                                          final color = _kWheelColors[
+                                              e.key % _kWheelColors.length];
+                                          return FortuneItem(
+                                            child: Text(
+                                              e.value.name,
+                                              style: const TextStyle(
+                                                fontSize: 26,
+                                                fontWeight: FontWeight.w900,
+                                                color: Colors.white,
+                                                shadows: [
+                                                  Shadow(
+                                                    color: Colors.black87,
+                                                    blurRadius: 6,
+                                                    offset: Offset(0, 2),
+                                                  ),
+                                                  Shadow(
+                                                    color: Colors.black54,
+                                                    blurRadius: 14,
+                                                  ),
+                                                ],
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                            style: FortuneItemStyle(
+                                              color: color,
+                                              borderColor: Colors.white
+                                                  .withOpacity(0.65),
+                                              borderWidth: 3,
+                                            ),
+                                          );
+                                        }).toList(),
+                                    onAnimationEnd: () {
+                                      if (resultIndex == null ||
+                                          resultIndex! >= p.length) return;
+                                      final ci = resultIndex!;
+                                      provider.addHistory(p[ci].name);
+                                      setState(() {
+                                        selectedIndexes.add(ci);
+                                        confirmedIndexes.add(ci);
+                                      });
+                                      if (confirmedIndexes.length ==
+                                          spinCount) {
+                                        _confettiController.play();
+                                      }
+                                      Future.delayed(
+                                        const Duration(milliseconds: 800),
+                                        _spinNext,
+                                      );
+                                    },
+                                  ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Confetti
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            child: ConfettiWidget(
+                              confettiController: _confettiController,
+                              blastDirectionality:
+                                  BlastDirectionality.explosive,
+                              shouldLoop: false,
+                              emissionFrequency: 0.05,
+                              numberOfParticles: 30,
+                              maxBlastForce: 20,
+                              minBlastForce: 5,
+                              gravity: 0.3,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // ── Spin button section ──────────────────────────────────────────
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                child: Column(
+                  children: [
+                    if (!_isSpinning && p.length >= 2)
+                      _GradientSpinButton(
+                        label: l10n.spinRoulette,
+                        onPressed: () {
+                          _resetGame();
+                          _startSpinning(p);
+                        },
+                      )
+                    else if (_isSpinning)
+                      const SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: _kEmerald,
+                        ),
+                      )
+                    else
+                      const SizedBox(height: 54),
+                    const SizedBox(height: 5),
+                    Text(
+                      _isSpinning
+                          ? 'Finding winner ${confirmedIndexes.length + 1} of $spinCount...'
+                          : 'Selecting $spinCount winner${spinCount > 1 ? 's' : ''} sequentially',
+                      style: const TextStyle(
+                        color: _kTextSub,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+              ),
+
+                    ], // SingleChildScrollView > Column children
+                  ),
+                ),
+              ), // Expanded
+
+              SafeArea(
+                top: false,
+                child: const MyBannerAd(),
+              ),
             ],
           ),
         );
@@ -745,106 +947,416 @@ class _RoulettePageState extends State<RoulettePage> {
   }
 }
 
-class HistoryPage extends StatelessWidget {
-  const HistoryPage({super.key});
+// ─── History BottomSheet ──────────────────────────────────────────────────────
+class _HistorySheet extends StatelessWidget {
+  final AppLocalizations l10n;
+  const _HistorySheet({required this.l10n});
 
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<PlayerProvider>(context);
     final entries = provider.history.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value)); // 내림차순 정렬
+      ..sort((a, b) => b.value.compareTo(a.value));
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("📜 ${AppLocalizations.of(context)!.history}"),
-      ),
-      body: Column(
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.55,
+      minChildSize: 0.35,
+      maxChildSize: 0.85,
+      builder: (_, scrollController) => Column(
         children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: entries.isEmpty
-                  ? Center(
-                      child: Text(
-                        AppLocalizations.of(context)!.noHistory,
-                        style: const TextStyle(fontSize: 16),
+          // Handle
+          Container(
+            margin: const EdgeInsets.only(top: 12, bottom: 8),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: _kBorder,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+
+          // Title row
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.history, color: _kBlue, size: 20),
+                    const SizedBox(width: 8),
+                    _GradientText(
+                      l10n.history,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
                       ),
-                    )
-                  : Column(
-                      children: [
-                        Expanded(
-                          child: ListView.separated(
-                            itemCount: entries.length,
-                            separatorBuilder: (_, __) => const Divider(),
-                            itemBuilder: (context, index) {
-                              final e = entries[index];
-                              return Card(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                elevation: 2,
-                                child: ListTile(
-                                  leading: CircleAvatar(
-                                    backgroundColor: Colors.teal.shade100,
-                                    child: Text(
-                                      '${index + 1}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                  title: Text(
-                                    e.key,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  trailing: Text(
-                                    '${e.value}${AppLocalizations.of(context)!.times}',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
+                    ),
+                  ],
+                ),
+                if (entries.isNotEmpty)
+                  GestureDetector(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          backgroundColor: _kSurface,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            side: const BorderSide(color: _kBorder),
+                          ),
+                          title: Text(
+                            l10n.resetHistory,
+                            style: const TextStyle(color: _kText),
+                          ),
+                          content: Text(
+                            l10n.confirmResetHistory,
+                            style: const TextStyle(color: _kTextSub),
+                          ),
+                          actions: [
+                            TextButton(
+                              child: Text(l10n.cancel),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                foregroundColor: const Color(0xFFF87171),
+                              ),
+                              child: Text(l10n.reset),
+                              onPressed: () {
+                                provider.clearHistory();
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      'Reset',
+                      style: TextStyle(
+                        color: Color(0xFFF87171),
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: _kBorder),
+
+          // List
+          Expanded(
+            child: entries.isEmpty
+                ? Center(
+                    child: Text(
+                      l10n.noHistory,
+                      style: const TextStyle(
+                        color: _kTextSub,
+                        fontSize: 15,
+                      ),
+                    ),
+                  )
+                : ListView.separated(
+                    controller: scrollController,
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                    itemCount: entries.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (context, index) {
+                      final e = entries[index];
+                      final color =
+                          _kWheelColors[index % _kWheelColors.length];
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: _kCard,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border(
+                            left: BorderSide(color: color, width: 4),
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        TextButton.icon(
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (_) => AlertDialog(
-                                title: Text(AppLocalizations.of(context)!.resetHistory),
-                                content: Text(AppLocalizations.of(context)!.confirmResetHistory),
-                                actions: [
-                                  TextButton(
-                                    child: Text(AppLocalizations.of(context)!.cancel),
-                                    onPressed: () => Navigator.pop(context),
-                                  ),
-                                  TextButton(
-                                    child: Text(AppLocalizations.of(context)!.reset),
-                                    onPressed: () {
-                                      provider.clearHistory();
-                                      Navigator.pop(context);
-                                    },
-                                  ),
-                                ],
+                        child: ListTile(
+                          dense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 2,
+                          ),
+                          leading: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: _kSurface,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: _kBorder),
+                            ),
+                            child: Center(
+                              child: Text(
+                                '${index + 1}',
+                                style: const TextStyle(
+                                  color: _kTextSub,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
                               ),
-                            );
-                          },
-                          icon: const Icon(Icons.delete_forever),
-                          label: Text(AppLocalizations.of(context)!.resetHistory),
+                            ),
+                          ),
+                          title: Text(
+                            e.key,
+                            style: const TextStyle(
+                              color: _kText,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.emoji_events,
+                                color: Color(0xFFFBBF24),
+                                size: 14,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${e.value}${l10n.times}',
+                                style: const TextStyle(
+                                  color: _kEmerald,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Shared Widgets ───────────────────────────────────────────────────────────
+
+class _GradientText extends StatelessWidget {
+  final String text;
+  final TextStyle style;
+  const _GradientText(this.text, {required this.style});
+
+  @override
+  Widget build(BuildContext context) {
+    return ShaderMask(
+      shaderCallback: (bounds) => const LinearGradient(
+        colors: [_kBlue, _kEmerald],
+      ).createShader(bounds),
+      child: Text(text, style: style.copyWith(color: Colors.white)),
+    );
+  }
+}
+
+class _StepperButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onPressed;
+  const _StepperButton({required this.icon, this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onPressed != null;
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: enabled ? _kCard : _kCard.withOpacity(0.4),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: _kBorder),
+        ),
+        child: Icon(
+          icon,
+          size: 16,
+          color: enabled ? _kTextSub : _kBorder,
+        ),
+      ),
+    );
+  }
+}
+
+class _GradientSpinButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onPressed;
+  const _GradientSpinButton({required this.label, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 56, vertical: 15),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(colors: [_kBlue, _kEmerald]),
+          borderRadius: BorderRadius.circular(50),
+          boxShadow: [
+            BoxShadow(
+              color: _kBlue.withOpacity(0.4),
+              blurRadius: 12,
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WinnerDialog extends StatelessWidget {
+  final List<Player> winners;
+  final VoidCallback onClose;
+  final VoidCallback onSpinAgain;
+
+  const _WinnerDialog({
+    required this.winners,
+    required this.onClose,
+    required this.onSpinAgain,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: _kSurface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: const BorderSide(color: _kEmerald, width: 2),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: _kEmerald,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: _kEmerald.withOpacity(0.5),
+                    blurRadius: 14,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.emoji_events,
+                color: Colors.white,
+                size: 32,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              winners.length > 1 ? 'Winners!' : 'Winner!',
+              style: const TextStyle(
+                color: _kTextSub,
+                fontSize: 12,
+                letterSpacing: 2,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 260),
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: winners.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                itemBuilder: (_, i) {
+                  final color = _kWheelColors[i % _kWheelColors.length];
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _kCard,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border(
+                        left: BorderSide(color: color, width: 6),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          '#${i + 1}',
+                          style: const TextStyle(
+                            color: _kTextSub,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            winners[i].name,
+                            style: const TextStyle(
+                              color: _kText,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ],
                     ),
+                  );
+                },
+              ),
             ),
-          ),
-          const MyBannerAd(), // 하단 배너
-        ],
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: onClose,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: _kText,
+                      side: const BorderSide(color: _kBorder),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                    ),
+                    child: const Text('Close'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: onSpinAgain,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _kEmerald,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                    ),
+                    icon: const Icon(Icons.refresh, size: 18),
+                    label: const Text('Spin Again'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
