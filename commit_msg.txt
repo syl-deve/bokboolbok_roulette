@@ -1,5 +1,5 @@
-style: 커스텀 앱 아이콘 및 스플래시 이미지 적용
+feat: 스플래시 화면을 전체 배경 이미지 방식으로 변경
 
-- assets/icon/app_icon.png (커스텀 아이콘) 적용
-- assets/icon/app_splash.png (커스텀 스플래시) 적용 및 관련 설정 업데이트
-- flutter_launcher_icons 및 flutter_native_splash 실행하여 자산 재생성
+- flutter_native_splash.yaml에서 image -> background_image로 변경
+- fullscreen: true 옵션 추가하여 직사각형 전체 화면 대응
+- 네이티브 자산(Android/iOS) 재생성
