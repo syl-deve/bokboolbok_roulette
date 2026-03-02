@@ -1,5 +1,5 @@
-feat: 앱 실행 시 스플래시 화면(전체 화면) 수정
+style: 커스텀 앱 아이콘 및 스플래시 이미지 적용
 
-- flutter_native_splash 패키지 추가 및 설정
-- 스플래시 배경색을 앱 테마 색상(#0F172A)으로 변경
-- 스플래시 중앙에 앱 아이콘 배치
+- assets/icon/app_icon.png (커스텀 아이콘) 적용
+- assets/icon/app_splash.png (커스텀 스플래시) 적용 및 관련 설정 업데이트
+- flutter_launcher_icons 및 flutter_native_splash 실행하여 자산 재생성
