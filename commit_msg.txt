@@ -1,5 +1,4 @@
-style: 스플래시 화면을 중앙 이미지 배치 방식으로 복구
+style: 앱 아이콘을 스플래시 이미지와 동일하게 변경
 
-- flutter_native_splash.yaml에서 background_image 및 fullscreen 제거
-- 다시 image (중앙 배치) 옵션 사용
-- 모든 네이티브 아이콘 및 스플래시 파일 재생성
+- assets/icon/app_splash.png를 app_icon.png로 복사
+- flutter_launcher_icons 실행하여 아이콘 재생성
