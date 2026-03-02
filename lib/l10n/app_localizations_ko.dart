@@ -9,6 +9,9 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String get appTitle => '럭키 룰렛';
+
+  @override
   String get participants => '참가자';
 
   @override

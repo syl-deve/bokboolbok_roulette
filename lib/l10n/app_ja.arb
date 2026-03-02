@@ -1,0 +1,38 @@
+{
+  "@@locale": "ja",
+  "appTitle": "ラッキールーレット",
+  "participants": "参加者",
+  "roulette": "ルーレット",
+  "history": "履歴",
+  "enterParticipantName": "参加者名を入力",
+  "exampleName": "例：田中太郎",
+  "noParticipants": "🙋‍♀️ 参加者を追加してください！",
+  "winner": "当選者数",
+  "spinRoulette": "回す",
+  "finalWinner": "最終当選者",
+  "noHistory": "📭 まだ当選履歴がありません。",
+  "times": "回",
+  "resetHistory": "履歴をリセット",
+  "confirmResetHistory": "本当にすべての履歴を削除しますか？",
+  "cancel": "キャンセル",
+  "reset": "リセット",
+  "personUnit": "人",
+  "clearAll": "すべて削除",
+  "findingWinner": "{total}人の中から{current}番目の当選者を選んでいます...",
+  "@findingWinner": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "selectingWinners": "順次{count}人の当選者を選定します",
+  "@selectingWinners": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "winnerTitle": "当選！",
+  "winnersTitle": "当選者発表！",
+  "close": "閉じる",
+  "spinAgain": "もう一度回す"
+}

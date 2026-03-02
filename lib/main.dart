@@ -54,7 +54,7 @@ void main() async {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        supportedLocales: const [Locale('en'), Locale('ko')],
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: ThemeData(
           brightness: Brightness.dark,
           scaffoldBackgroundColor: _kBg,
@@ -468,7 +468,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const Icon(Icons.casino, color: _kBlue, size: 22),
                 const SizedBox(width: 8),
                 _GradientText(
-                  'Luck Roulette',
+                  l10n.appTitle,
                   style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,

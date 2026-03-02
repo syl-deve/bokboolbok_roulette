@@ -1,0 +1,38 @@
+{
+  "@@locale": "zh",
+  "appTitle": "幸运轮盘",
+  "participants": "参与者",
+  "roulette": "轮盘",
+  "history": "历史记录",
+  "enterParticipantName": "输入参与者姓名",
+  "exampleName": "例：张三",
+  "noParticipants": "🙋‍♀️ 请添加参与者！",
+  "winner": "中奖人数",
+  "spinRoulette": "开始旋转",
+  "finalWinner": "最终中奖者",
+  "noHistory": "📭 暂无中奖记录。",
+  "times": " 次",
+  "resetHistory": "重置历史",
+  "confirmResetHistory": "确定要重置所有历史记录吗？",
+  "cancel": "取消",
+  "reset": "重置",
+  "personUnit": "人",
+  "clearAll": "全部清除",
+  "findingWinner": "正在从 {total} 人中选取第 {current} 位中奖者...",
+  "@findingWinner": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "selectingWinners": "按顺序选取 {count} 位中奖者",
+  "@selectingWinners": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "winnerTitle": "中奖！",
+  "winnersTitle": "中奖名单！",
+  "close": "关闭",
+  "spinAgain": "再次旋转"
+}
