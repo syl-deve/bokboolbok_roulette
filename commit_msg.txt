@@ -1,6 +1,4 @@
-feat: 중국어(간체) 및 일본어 현지화 추가 및 설정 오류 수정
+style: 아이콘 배경색을 다크 테마(#0F172A)로 변경
 
-- lib/l10n/app_zh.arb, app_ja.arb 생성
-- l10n.yaml 설정 오류 수정 (output-localization-file)
-- 모든 언어에 appTitle 추가 및 main.dart 타이틀 현지화 적용
-- supportedLocales 설정을 AppLocalizations.supportedLocales로 통합
+- assets/icon/app_icon.png 파일의 흰색 배경을 제거하고 어두운 배경색으로 처리
+- flutter_launcher_icons 실행하여 각 플랫폼 빌드 아이콘 재생성
