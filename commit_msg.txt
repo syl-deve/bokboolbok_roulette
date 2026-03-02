@@ -1,5 +1,5 @@
-feat: 스플래시 화면을 전체 배경 이미지 방식으로 변경
+style: 스플래시 화면을 중앙 이미지 배치 방식으로 복구
 
-- flutter_native_splash.yaml에서 image -> background_image로 변경
-- fullscreen: true 옵션 추가하여 직사각형 전체 화면 대응
-- 네이티브 자산(Android/iOS) 재생성
+- flutter_native_splash.yaml에서 background_image 및 fullscreen 제거
+- 다시 image (중앙 배치) 옵션 사용
+- 모든 네이티브 아이콘 및 스플래시 파일 재생성
