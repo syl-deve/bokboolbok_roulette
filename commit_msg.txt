@@ -1,4 +1,5 @@
-style: 아이콘 배경색을 다크 테마(#0F172A)로 변경
+feat: 앱 실행 시 스플래시 화면(전체 화면) 수정
 
-- assets/icon/app_icon.png 파일의 흰색 배경을 제거하고 어두운 배경색으로 처리
-- flutter_launcher_icons 실행하여 각 플랫폼 빌드 아이콘 재생성
+- flutter_native_splash 패키지 추가 및 설정
+- 스플래시 배경색을 앱 테마 색상(#0F172A)으로 변경
+- 스플래시 중앙에 앱 아이콘 배치
