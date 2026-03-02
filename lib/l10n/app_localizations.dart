@@ -137,13 +137,13 @@ abstract class AppLocalizations {
   /// No description provided for @winner.
   ///
   /// In en, this message translates to:
-  /// **'Winner'**
+  /// **'No. of Winners'**
   String get winner;
 
   /// No description provided for @spinRoulette.
   ///
   /// In en, this message translates to:
-  /// **'Spin'**
+  /// **'Spin!'**
   String get spinRoulette;
 
   /// No description provided for @finalWinner.
@@ -193,6 +193,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'person'**
   String get personUnit;
+
+  /// No description provided for @clearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear All'**
+  String get clearAll;
+
+  /// No description provided for @findingWinner.
+  ///
+  /// In en, this message translates to:
+  /// **'Finding winner {current} of {total}...'**
+  String findingWinner(int current, int total);
+
+  /// No description provided for @selectingWinners.
+  ///
+  /// In en, this message translates to:
+  /// **'Selecting {count} winner(s) sequentially'**
+  String selectingWinners(int count);
+
+  /// No description provided for @winnerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Winner!'**
+  String get winnerTitle;
+
+  /// No description provided for @winnersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Winners!'**
+  String get winnersTitle;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
+
+  /// No description provided for @spinAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Spin Again'**
+  String get spinAgain;
 }
 
 class _AppLocalizationsDelegate

@@ -55,4 +55,29 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get personUnit => '명';
+
+  @override
+  String get clearAll => '전체 삭제';
+
+  @override
+  String findingWinner(int current, int total) {
+    return '$total명 중 $current번째 당첨자 선정 중...';
+  }
+
+  @override
+  String selectingWinners(int count) {
+    return '순차적으로 $count명을 선정합니다';
+  }
+
+  @override
+  String get winnerTitle => '당첨!';
+
+  @override
+  String get winnersTitle => '당첨자 발표!';
+
+  @override
+  String get close => '닫기';
+
+  @override
+  String get spinAgain => '다시 돌리기';
 }

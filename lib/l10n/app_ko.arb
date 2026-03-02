@@ -15,5 +15,23 @@
   "confirmResetHistory": "정말로 모든 당첨 기록을 삭제하시겠습니까?",
   "cancel": "취소",
   "reset": "초기화",
-  "personUnit": "명"
+  "personUnit": "명",
+  "clearAll": "전체 삭제",
+  "findingWinner": "{total}명 중 {current}번째 당첨자 선정 중...",
+  "@findingWinner": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "selectingWinners": "순차적으로 {count}명을 선정합니다",
+  "@selectingWinners": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "winnerTitle": "당첨!",
+  "winnersTitle": "당첨자 발표!",
+  "close": "닫기",
+  "spinAgain": "다시 돌리기"
 }

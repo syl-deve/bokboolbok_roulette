@@ -27,10 +27,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noParticipants => '🙋‍♀️ Please add participants!';
 
   @override
-  String get winner => 'Winner';
+  String get winner => 'No. of Winners';
 
   @override
-  String get spinRoulette => 'Spin';
+  String get spinRoulette => 'Spin!';
 
   @override
   String get finalWinner => 'Final Winner';
@@ -56,4 +56,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get personUnit => 'person';
+
+  @override
+  String get clearAll => 'Clear All';
+
+  @override
+  String findingWinner(int current, int total) {
+    return 'Finding winner $current of $total...';
+  }
+
+  @override
+  String selectingWinners(int count) {
+    return 'Selecting $count winner(s) sequentially';
+  }
+
+  @override
+  String get winnerTitle => 'Winner!';
+
+  @override
+  String get winnersTitle => 'Winners!';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String get spinAgain => 'Spin Again';
 }

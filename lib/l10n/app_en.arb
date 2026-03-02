@@ -6,8 +6,8 @@
   "enterParticipantName": "Enter participant name",
   "exampleName": "Ex: John Doe",
   "noParticipants": "🙋‍♀️ Please add participants!",
-  "winner": "Winner",
-  "spinRoulette": "Spin",
+  "winner": "No. of Winners",
+  "spinRoulette": "Spin!",
   "finalWinner": "Final Winner",
   "noHistory": "📭 No winning history yet.",
   "times": " times",
@@ -15,5 +15,23 @@
   "confirmResetHistory": "Are you sure you want to reset the entire history?",
   "cancel": "Cancel",
   "reset": "Reset",
-  "personUnit": "person"
+  "personUnit": "person",
+  "clearAll": "Clear All",
+  "findingWinner": "Finding winner {current} of {total}...",
+  "@findingWinner": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "selectingWinners": "Selecting {count} winner(s) sequentially",
+  "@selectingWinners": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "winnerTitle": "Winner!",
+  "winnersTitle": "Winners!",
+  "close": "Close",
+  "spinAgain": "Spin Again"
 }

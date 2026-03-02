@@ -562,7 +562,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'No. of Winners',
+                            l10n.winner,
                             style: const TextStyle(
                               color: _kText,
                               fontWeight: FontWeight.w500,
@@ -631,9 +631,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 provider.removePlayer(i);
                               }
                             },
-                            child: const Text(
-                              'Clear All',
-                              style: TextStyle(
+                            child: Text(
+                              l10n.clearAll,
+                              style: const TextStyle(
                                 color: Color(0xFFF87171),
                                 fontSize: 12,
                               ),
@@ -918,8 +918,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 5),
                     Text(
                       _isSpinning
-                          ? 'Finding winner ${confirmedIndexes.length + 1} of $spinCount...'
-                          : 'Selecting $spinCount winner${spinCount > 1 ? 's' : ''} sequentially',
+                          ? l10n.findingWinner(confirmedIndexes.length + 1, spinCount)
+                          : l10n.selectingWinners(spinCount),
                       style: const TextStyle(
                         color: _kTextSub,
                         fontSize: 12,
@@ -1033,9 +1033,9 @@ class _HistorySheet extends StatelessWidget {
                         ),
                       );
                     },
-                    child: const Text(
-                      'Reset',
-                      style: TextStyle(
+                    child: Text(
+                      l10n.reset,
+                      style: const TextStyle(
                         color: Color(0xFFF87171),
                         fontSize: 13,
                       ),
@@ -1266,7 +1266,9 @@ class _WinnerDialog extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              winners.length > 1 ? 'Winners!' : 'Winner!',
+              winners.length > 1
+                  ? AppLocalizations.of(context)!.winnersTitle
+                  : AppLocalizations.of(context)!.winnerTitle,
               style: const TextStyle(
                 color: _kTextSub,
                 fontSize: 12,
@@ -1334,7 +1336,7 @@ class _WinnerDialog extends StatelessWidget {
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 13),
                     ),
-                    child: const Text('Close'),
+                    child: Text(AppLocalizations.of(context)!.close),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -1350,7 +1352,7 @@ class _WinnerDialog extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 13),
                     ),
                     icon: const Icon(Icons.refresh, size: 18),
-                    label: const Text('Spin Again'),
+                    label: Text(AppLocalizations.of(context)!.spinAgain),
                   ),
                 ),
               ],
