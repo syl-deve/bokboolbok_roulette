@@ -326,6 +326,9 @@ class _HomeScreenState extends State<HomeScreen> {
   // Scroll
   final ScrollController _scrollController = ScrollController();
 
+  // Spin button focus (prevents keyboard from appearing after dialog close)
+  final FocusNode _spinButtonFocusNode = FocusNode();
+
   // Roulette state
   final StreamController<int> _selected = StreamController<int>.broadcast();
   late ConfettiController _confettiController;
@@ -350,6 +353,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _scrollController.dispose();
     _selected.close();
     _confettiController.dispose();
+    _spinButtonFocusNode.dispose();
     super.dispose();
   }
 
@@ -415,7 +419,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onClose: () {
           Navigator.pop(ctx);
           _resetGame();
-          FocusScope.of(context).unfocus();
+          _spinButtonFocusNode.requestFocus();
           _scrollToBottom();
         },
         onSpinAgain: () {
@@ -869,7 +873,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         // Confetti
-                        Positioned.fill(
+                        Align(
+                          alignment: Alignment.center,
                           child: IgnorePointer(
                             child: ConfettiWidget(
                               confettiController: _confettiController,
@@ -899,6 +904,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     if (!_isSpinning && p.length >= 2)
                       _GradientSpinButton(
                         label: l10n.spinRoulette,
+                        focusNode: _spinButtonFocusNode,
                         onPressed: () {
                           _resetGame();
                           _startSpinning(p);
@@ -1187,32 +1193,36 @@ class _StepperButton extends StatelessWidget {
 class _GradientSpinButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
-  const _GradientSpinButton({required this.label, required this.onPressed});
+  final FocusNode? focusNode;
+  const _GradientSpinButton({required this.label, required this.onPressed, this.focusNode});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 56, vertical: 15),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [_kBlue, _kEmerald]),
-          borderRadius: BorderRadius.circular(50),
-          boxShadow: [
-            BoxShadow(
-              color: _kBlue.withOpacity(0.4),
-              blurRadius: 12,
-              spreadRadius: 2,
+    return Focus(
+      focusNode: focusNode,
+      child: GestureDetector(
+        onTap: onPressed,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 56, vertical: 15),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(colors: [_kBlue, _kEmerald]),
+            borderRadius: BorderRadius.circular(50),
+            boxShadow: [
+              BoxShadow(
+                color: _kBlue.withOpacity(0.4),
+                blurRadius: 12,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1,
             ),
-          ],
-        ),
-        child: Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 1,
           ),
         ),
       ),
