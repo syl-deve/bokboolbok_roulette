@@ -172,7 +172,7 @@ class AdHelper {
           _interstitialAd = null;
           _isAdLoaded = false;
           loadInterstitialAd();
-          Future.delayed(const Duration(seconds: 3), onAdClosedAfterDelay);
+          onAdClosedAfterDelay();
         },
         onAdFailedToShowFullScreenContent: (ad, error) {
           ad.dispose();
