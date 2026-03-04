@@ -34,5 +34,22 @@
   "winnerTitle": "Winner!",
   "winnersTitle": "Winners!",
   "close": "Close",
-  "spinAgain": "Spin Again"
+  "spinAgain": "Spin Again",
+  "presets": "Presets",
+  "savePreset": "Save Current List",
+  "noPresets": "📂 No saved presets.",
+  "presetNameHint": "Enter preset name",
+  "save": "Save",
+  "loadPreset": "Load",
+  "deletePreset": "Delete",
+  "confirmDeletePreset": "Delete this preset?",
+  "presetLoaded": "Preset loaded.",
+  "presetSaved": "Preset saved.",
+  "presetNameEmpty": "Please enter a name.",
+  "presetPersonCount": "{count} person(s)",
+  "@presetPersonCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  }
 }

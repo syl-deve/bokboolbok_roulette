@@ -83,4 +83,42 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get spinAgain => 'もう一度回す';
+
+  @override
+  String get presets => 'プリセット';
+
+  @override
+  String get savePreset => '現在のリストを保存';
+
+  @override
+  String get noPresets => '📂 保存されたプリセットがありません。';
+
+  @override
+  String get presetNameHint => 'プリセット名を入力';
+
+  @override
+  String get save => '保存';
+
+  @override
+  String get loadPreset => '読み込む';
+
+  @override
+  String get deletePreset => '削除';
+
+  @override
+  String get confirmDeletePreset => 'プリセットを削除しますか？';
+
+  @override
+  String get presetLoaded => 'プリセットを読み込みました。';
+
+  @override
+  String get presetSaved => 'プリセットを保存しました。';
+
+  @override
+  String get presetNameEmpty => '名前を入力してください。';
+
+  @override
+  String presetPersonCount(int count) {
+    return '$count人';
+  }
 }

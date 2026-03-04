@@ -34,7 +34,7 @@ dart run flutter_launcher_icons
 
 ## Architecture
 
-The app is a **single-file monolith** — almost all logic lives in `lib/main.dart` (~1,365 lines). There is no separate screen/widget/service directory structure.
+The app is a **single-file monolith** — almost all logic lives in `lib/main.dart` (~1,550 lines). There is no separate screen/widget/service directory structure.
 
 ### Key classes in `lib/main.dart`
 
@@ -43,10 +43,12 @@ The app is a **single-file monolith** — almost all logic lives in `lib/main.da
 | `AdHelper` | ~141 | Google Mobile Ads initialization + interstitial ad lifecycle |
 | `MyBannerAd` | ~194 | Banner ad widget |
 | `Player` | ~239 | Data model for a participant |
-| `PlayerProvider` | ~244 | `ChangeNotifier` — owns participant list, win history, SharedPreferences persistence |
-| `HomeScreen` / `_HomeScreenState` | ~315/322 | Main UI: roulette wheel, spin logic, winner selection, confetti |
-| `_HistorySheet` | ~951 | Draggable bottom sheet showing win history/stats |
-| `_WinnerDialog` | ~1223 | Dialog displayed when a winner is selected |
+| `Preset` | ~243 | Data model for a preset (name + player list) |
+| `PlayerProvider` | ~248 | `ChangeNotifier` — owns participant list, presets, win history, SharedPreferences persistence |
+| `HomeScreen` / `_HomeScreenState` | ~325/332 | Main UI: roulette wheel, spin logic, winner selection, confetti |
+| `_PresetSheet` | ~960 | Draggable bottom sheet for saving/loading/deleting presets |
+| `_HistorySheet` | ~1100 | Draggable bottom sheet showing win history/stats |
+| `_WinnerDialog` | ~1380 | Dialog displayed when a winner is selected |
 
 ### State management
 
@@ -54,7 +56,11 @@ Provider pattern. `PlayerProvider` is the single source of truth — registered 
 
 ### Persistence
 
-`SharedPreferences` — participant list and win history are serialized/deserialized in `PlayerProvider`.
+`SharedPreferences` — participant list, presets, and win history are serialized/deserialized in `PlayerProvider`.
+
+- `players` key: `List<String>`
+- `history` key: `String` (`name:count|name:count|…`)
+- `presets` key: `List<String>` (each entry: `presetName\x00player1\x00player2\x00…`)
 
 ### Localization
 

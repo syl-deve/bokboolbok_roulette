@@ -84,4 +84,42 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spinAgain => 'Spin Again';
+
+  @override
+  String get presets => 'Presets';
+
+  @override
+  String get savePreset => 'Save Current List';
+
+  @override
+  String get noPresets => '📂 No saved presets.';
+
+  @override
+  String get presetNameHint => 'Enter preset name';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get loadPreset => 'Load';
+
+  @override
+  String get deletePreset => 'Delete';
+
+  @override
+  String get confirmDeletePreset => 'Delete this preset?';
+
+  @override
+  String get presetLoaded => 'Preset loaded.';
+
+  @override
+  String get presetSaved => 'Preset saved.';
+
+  @override
+  String get presetNameEmpty => 'Please enter a name.';
+
+  @override
+  String presetPersonCount(int count) {
+    return '$count person(s)';
+  }
 }

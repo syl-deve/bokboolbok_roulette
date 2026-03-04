@@ -34,5 +34,22 @@
   "winnerTitle": "中奖！",
   "winnersTitle": "中奖名单！",
   "close": "关闭",
-  "spinAgain": "再次旋转"
+  "spinAgain": "再次旋转",
+  "presets": "预设",
+  "savePreset": "保存当前列表",
+  "noPresets": "📂 没有已保存的预设。",
+  "presetNameHint": "输入预设名称",
+  "save": "保存",
+  "loadPreset": "加载",
+  "deletePreset": "删除",
+  "confirmDeletePreset": "确定要删除此预设吗？",
+  "presetLoaded": "预设已加载。",
+  "presetSaved": "预设已保存。",
+  "presetNameEmpty": "请输入名称。",
+  "presetPersonCount": "{count}人",
+  "@presetPersonCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  }
 }

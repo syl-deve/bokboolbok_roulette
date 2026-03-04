@@ -245,6 +245,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Spin Again'**
   String get spinAgain;
+
+  /// No description provided for @presets.
+  ///
+  /// In en, this message translates to:
+  /// **'Presets'**
+  String get presets;
+
+  /// No description provided for @savePreset.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Current List'**
+  String get savePreset;
+
+  /// No description provided for @noPresets.
+  ///
+  /// In en, this message translates to:
+  /// **'📂 No saved presets.'**
+  String get noPresets;
+
+  /// No description provided for @presetNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter preset name'**
+  String get presetNameHint;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @loadPreset.
+  ///
+  /// In en, this message translates to:
+  /// **'Load'**
+  String get loadPreset;
+
+  /// No description provided for @deletePreset.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get deletePreset;
+
+  /// No description provided for @confirmDeletePreset.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this preset?'**
+  String get confirmDeletePreset;
+
+  /// No description provided for @presetLoaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Preset loaded.'**
+  String get presetLoaded;
+
+  /// No description provided for @presetSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Preset saved.'**
+  String get presetSaved;
+
+  /// No description provided for @presetNameEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a name.'**
+  String get presetNameEmpty;
+
+  /// No description provided for @presetPersonCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} person(s)'**
+  String presetPersonCount(int count);
 }
 
 class _AppLocalizationsDelegate

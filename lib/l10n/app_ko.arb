@@ -34,5 +34,22 @@
   "winnerTitle": "당첨!",
   "winnersTitle": "당첨자 발표!",
   "close": "닫기",
-  "spinAgain": "다시 돌리기"
+  "spinAgain": "다시 돌리기",
+  "presets": "프리셋",
+  "savePreset": "현재 목록 저장",
+  "noPresets": "📂 저장된 프리셋이 없습니다.",
+  "presetNameHint": "프리셋 이름 입력",
+  "save": "저장",
+  "loadPreset": "불러오기",
+  "deletePreset": "삭제",
+  "confirmDeletePreset": "프리셋을 삭제하시겠습니까?",
+  "presetLoaded": "프리셋을 불러왔습니다.",
+  "presetSaved": "프리셋이 저장되었습니다.",
+  "presetNameEmpty": "이름을 입력해주세요.",
+  "presetPersonCount": "{count}명",
+  "@presetPersonCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  }
 }

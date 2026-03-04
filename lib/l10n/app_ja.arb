@@ -34,5 +34,22 @@
   "winnerTitle": "当選！",
   "winnersTitle": "当選者発表！",
   "close": "閉じる",
-  "spinAgain": "もう一度回す"
+  "spinAgain": "もう一度回す",
+  "presets": "プリセット",
+  "savePreset": "現在のリストを保存",
+  "noPresets": "📂 保存されたプリセットがありません。",
+  "presetNameHint": "プリセット名を入力",
+  "save": "保存",
+  "loadPreset": "読み込む",
+  "deletePreset": "削除",
+  "confirmDeletePreset": "プリセットを削除しますか？",
+  "presetLoaded": "プリセットを読み込みました。",
+  "presetSaved": "プリセットを保存しました。",
+  "presetNameEmpty": "名前を入力してください。",
+  "presetPersonCount": "{count}人",
+  "@presetPersonCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  }
 }

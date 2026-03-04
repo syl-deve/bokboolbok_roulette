@@ -83,4 +83,42 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get spinAgain => '다시 돌리기';
+
+  @override
+  String get presets => '프리셋';
+
+  @override
+  String get savePreset => '현재 목록 저장';
+
+  @override
+  String get noPresets => '📂 저장된 프리셋이 없습니다.';
+
+  @override
+  String get presetNameHint => '프리셋 이름 입력';
+
+  @override
+  String get save => '저장';
+
+  @override
+  String get loadPreset => '불러오기';
+
+  @override
+  String get deletePreset => '삭제';
+
+  @override
+  String get confirmDeletePreset => '프리셋을 삭제하시겠습니까?';
+
+  @override
+  String get presetLoaded => '프리셋을 불러왔습니다.';
+
+  @override
+  String get presetSaved => '프리셋이 저장되었습니다.';
+
+  @override
+  String get presetNameEmpty => '이름을 입력해주세요.';
+
+  @override
+  String presetPersonCount(int count) {
+    return '$count명';
+  }
 }

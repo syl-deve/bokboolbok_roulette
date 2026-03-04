@@ -83,4 +83,42 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get spinAgain => '再次旋转';
+
+  @override
+  String get presets => '预设';
+
+  @override
+  String get savePreset => '保存当前列表';
+
+  @override
+  String get noPresets => '📂 没有已保存的预设。';
+
+  @override
+  String get presetNameHint => '输入预设名称';
+
+  @override
+  String get save => '保存';
+
+  @override
+  String get loadPreset => '加载';
+
+  @override
+  String get deletePreset => '删除';
+
+  @override
+  String get confirmDeletePreset => '确定要删除此预设吗？';
+
+  @override
+  String get presetLoaded => '预设已加载。';
+
+  @override
+  String get presetSaved => '预设已保存。';
+
+  @override
+  String get presetNameEmpty => '请输入名称。';
+
+  @override
+  String presetPersonCount(int count) {
+    return '$count人';
+  }
 }

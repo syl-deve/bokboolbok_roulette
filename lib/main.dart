@@ -241,12 +241,20 @@ class Player {
   Player(this.name);
 }
 
+class Preset {
+  final String name;
+  final List<String> players;
+  Preset({required this.name, required this.players});
+}
+
 class PlayerProvider with ChangeNotifier {
   final List<Player> _players = [];
   Map<String, int> _history = {};
+  List<Preset> _presets = [];
 
   List<Player> get players => _players;
   Map<String, int> get history => _history;
+  List<Preset> get presets => _presets;
 
   void addPlayer(String name) {
     final trimmed = name.trim();
@@ -270,6 +278,7 @@ class PlayerProvider with ChangeNotifier {
     _players.clear();
     _players.addAll(names.map((e) => Player(e)));
     await loadHistory();
+    await _loadPresets();
     notifyListeners();
   }
 
@@ -307,6 +316,46 @@ class PlayerProvider with ChangeNotifier {
     _history.clear();
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('history');
+    notifyListeners();
+  }
+
+  // ── Presets ──────────────────────────────────────────────────────────────────
+  Future<void> _loadPresets() async {
+    final prefs = await SharedPreferences.getInstance();
+    final encoded = prefs.getStringList('presets') ?? [];
+    _presets = encoded.map((e) {
+      final parts = e.split('\x00');
+      if (parts.length < 2) return null;
+      return Preset(name: parts[0], players: parts.sublist(1));
+    }).whereType<Preset>().toList();
+  }
+
+  Future<void> _savePresets() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      'presets',
+      _presets.map((p) => '${p.name}\x00${p.players.join('\x00')}').toList(),
+    );
+  }
+
+  Future<void> savePreset(String presetName) async {
+    final names = _players.map((p) => p.name).toList();
+    _presets.add(Preset(name: presetName, players: names));
+    await _savePresets();
+    notifyListeners();
+  }
+
+  Future<void> deletePreset(int index) async {
+    _presets.removeAt(index);
+    await _savePresets();
+    notifyListeners();
+  }
+
+  void loadPreset(int index) {
+    final preset = _presets[index];
+    _players.clear();
+    _players.addAll(preset.players.map((e) => Player(e)));
+    _saveToPrefs();
     notifyListeners();
   }
 }
@@ -441,6 +490,19 @@ class _HomeScreenState extends State<HomeScreen> {
       confirmedIndexes.clear();
       _isSpinning = false;
     });
+  }
+
+  // ── Preset sheet ────────────────────────────────────────────────────────────
+  void _showPresetSheet(BuildContext context, AppLocalizations l10n) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: _kSurface,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => _PresetSheet(l10n: l10n),
+    );
   }
 
   // ── History sheet ───────────────────────────────────────────────────────────
@@ -704,37 +766,67 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         },
                       ),
-                    // History button — 참가자 목록 바로 아래
+                    // Buttons row — 참가자 목록 바로 아래
                     const SizedBox(height: 4),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: OutlinedButton.icon(
-                        onPressed: () => _showHistorySheet(context, l10n),
-                        icon: const Icon(
-                          Icons.history,
-                          size: 15,
-                          color: _kTextSub,
-                        ),
-                        label: Text(
-                          l10n.history,
-                          style: const TextStyle(
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: () => _showPresetSheet(context, l10n),
+                          icon: const Icon(
+                            Icons.bookmark_outline,
+                            size: 15,
                             color: _kTextSub,
-                            fontSize: 13,
+                          ),
+                          label: Text(
+                            l10n.presets,
+                            style: const TextStyle(
+                              color: _kTextSub,
+                              fontSize: 13,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            side: const BorderSide(color: _kBorder),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
                         ),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
+                        const SizedBox(width: 8),
+                        OutlinedButton.icon(
+                          onPressed: () => _showHistorySheet(context, l10n),
+                          icon: const Icon(
+                            Icons.history,
+                            size: 15,
+                            color: _kTextSub,
                           ),
-                          side: const BorderSide(color: _kBorder),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                          label: Text(
+                            l10n.history,
+                            style: const TextStyle(
+                              color: _kTextSub,
+                              fontSize: 13,
+                            ),
                           ),
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            side: const BorderSide(color: _kBorder),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ],
                 ),
@@ -1129,6 +1221,307 @@ class _HistorySheet extends StatelessWidget {
                                   color: _kEmerald,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Preset BottomSheet ───────────────────────────────────────────────────────
+class _PresetSheet extends StatefulWidget {
+  final AppLocalizations l10n;
+  const _PresetSheet({required this.l10n});
+
+  @override
+  State<_PresetSheet> createState() => _PresetSheetState();
+}
+
+class _PresetSheetState extends State<_PresetSheet> {
+  final TextEditingController _nameController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  void _showSaveDialog(BuildContext context, PlayerProvider provider) {
+    _nameController.clear();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: _kSurface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: _kBorder),
+        ),
+        title: Text(
+          widget.l10n.savePreset,
+          style: const TextStyle(color: _kText),
+        ),
+        content: TextField(
+          controller: _nameController,
+          autofocus: true,
+          style: const TextStyle(color: _kText),
+          decoration: InputDecoration(
+            hintText: widget.l10n.presetNameHint,
+          ),
+          onSubmitted: (_) => _doSave(ctx, provider),
+        ),
+        actions: [
+          TextButton(
+            child: Text(widget.l10n.cancel),
+            onPressed: () => Navigator.pop(ctx),
+          ),
+          TextButton(
+            child: Text(widget.l10n.save),
+            onPressed: () => _doSave(ctx, provider),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _doSave(BuildContext ctx, PlayerProvider provider) {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(widget.l10n.presetNameEmpty)),
+      );
+      return;
+    }
+    provider.savePreset(name);
+    Navigator.pop(ctx);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(widget.l10n.presetSaved)),
+    );
+  }
+
+  void _showDeleteDialog(BuildContext context, PlayerProvider provider, int index) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: _kSurface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: _kBorder),
+        ),
+        title: Text(
+          widget.l10n.deletePreset,
+          style: const TextStyle(color: _kText),
+        ),
+        content: Text(
+          widget.l10n.confirmDeletePreset,
+          style: const TextStyle(color: _kTextSub),
+        ),
+        actions: [
+          TextButton(
+            child: Text(widget.l10n.cancel),
+            onPressed: () => Navigator.pop(ctx),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFFF87171),
+            ),
+            child: Text(widget.l10n.deletePreset),
+            onPressed: () {
+              provider.deletePreset(index);
+              Navigator.pop(ctx);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = Provider.of<PlayerProvider>(context);
+    final presets = provider.presets;
+    final hasPlayers = provider.players.isNotEmpty;
+
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.55,
+      minChildSize: 0.35,
+      maxChildSize: 0.85,
+      builder: (_, scrollController) => Column(
+        children: [
+          // Handle
+          Container(
+            margin: const EdgeInsets.only(top: 12, bottom: 8),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: _kBorder,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+
+          // Title row
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.bookmark_outline, color: _kBlue, size: 20),
+                    const SizedBox(width: 8),
+                    _GradientText(
+                      widget.l10n.presets,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+                if (hasPlayers)
+                  GestureDetector(
+                    onTap: () => _showSaveDialog(context, provider),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _kBlue.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: _kBlue.withOpacity(0.4)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.save_outlined, size: 13, color: _kBlue),
+                          const SizedBox(width: 5),
+                          Text(
+                            widget.l10n.savePreset,
+                            style: const TextStyle(
+                              color: _kBlue,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: _kBorder),
+
+          // List
+          Expanded(
+            child: presets.isEmpty
+                ? Center(
+                    child: Text(
+                      widget.l10n.noPresets,
+                      style: const TextStyle(
+                        color: _kTextSub,
+                        fontSize: 15,
+                      ),
+                    ),
+                  )
+                : ListView.separated(
+                    controller: scrollController,
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                    itemCount: presets.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (context, index) {
+                      final preset = presets[index];
+                      final color = _kWheelColors[index % _kWheelColors.length];
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: _kCard,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border(
+                            left: BorderSide(color: color, width: 4),
+                          ),
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 4,
+                          ),
+                          title: Text(
+                            preset.name,
+                            style: const TextStyle(
+                              color: _kText,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
+                          ),
+                          subtitle: Text(
+                            preset.players.take(3).join(', ') +
+                                (preset.players.length > 3 ? '  …' : ''),
+                            style: const TextStyle(
+                              color: _kTextSub,
+                              fontSize: 12,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                widget.l10n.presetPersonCount(preset.players.length),
+                                style: const TextStyle(
+                                  color: _kTextSub,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                onTap: () {
+                                  provider.loadPreset(index);
+                                  Navigator.pop(context);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(widget.l10n.presetLoaded),
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: _kEmerald.withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(7),
+                                    border: Border.all(
+                                      color: _kEmerald.withOpacity(0.4),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    widget.l10n.loadPreset,
+                                    style: const TextStyle(
+                                      color: _kEmerald,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              GestureDetector(
+                                onTap: () => _showDeleteDialog(context, provider, index),
+                                child: const Icon(
+                                  Icons.delete_outline,
+                                  color: Color(0xFFF87171),
+                                  size: 18,
                                 ),
                               ),
                             ],
