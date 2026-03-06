@@ -429,9 +429,6 @@ class _HomeScreenState extends State<HomeScreen> {
   // ── Roulette logic ──────────────────────────────────────────────────────────
   void _startSpinning(List<Player> p) {
     if (_isSpinning || p.length < 2) return;
-    HapticFeedback.mediumImpact();
-    _spinPlayer.setReleaseMode(ReleaseMode.loop);
-    _spinPlayer.play(AssetSource('sounds/spin.wav'));
     setState(() {
       _isSpinning = true;
       players = p;
@@ -439,15 +436,22 @@ class _HomeScreenState extends State<HomeScreen> {
       confirmedIndexes.clear();
     });
     AdHelper.showInterstitialAd(() {
+      if (!mounted) return;
+      HapticFeedback.mediumImpact();
+      _spinPlayer.setReleaseMode(ReleaseMode.loop);
+      _spinPlayer.play(AssetSource('sounds/spin.wav'));
       FocusScope.of(context).unfocus();
       _scrollToBottom();
-      if (spinCount == 1) {
-        resultIndex = 0;
-        _selected.add(resultIndex!);
-        Future.delayed(const Duration(milliseconds: 300), _spinNext);
-      } else {
-        _spinNext();
-      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (spinCount == 1) {
+          resultIndex = 0;
+          _selected.add(resultIndex!);
+          Future.delayed(const Duration(milliseconds: 300), _spinNext);
+        } else {
+          _spinNext();
+        }
+      });
     });
   }
 
