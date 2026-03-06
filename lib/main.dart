@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:confetti/confetti.dart';
 import 'package:flutter_fortune_wheel/flutter_fortune_wheel.dart';
 import 'package:provider/provider.dart';
@@ -389,6 +391,10 @@ class _HomeScreenState extends State<HomeScreen> {
   int spinCount = 1;
   List<Player> players = [];
 
+  // Sound
+  final AudioPlayer _spinPlayer = AudioPlayer();
+  final AudioPlayer _winPlayer = AudioPlayer();
+
   @override
   void initState() {
     super.initState();
@@ -403,6 +409,8 @@ class _HomeScreenState extends State<HomeScreen> {
     _selected.close();
     _confettiController.dispose();
     _spinButtonFocusNode.dispose();
+    _spinPlayer.dispose();
+    _winPlayer.dispose();
     super.dispose();
   }
 
@@ -421,6 +429,9 @@ class _HomeScreenState extends State<HomeScreen> {
   // ── Roulette logic ──────────────────────────────────────────────────────────
   void _startSpinning(List<Player> p) {
     if (_isSpinning || p.length < 2) return;
+    HapticFeedback.mediumImpact();
+    _spinPlayer.setReleaseMode(ReleaseMode.loop);
+    _spinPlayer.play(AssetSource('sounds/spin.wav'));
     setState(() {
       _isSpinning = true;
       players = p;
@@ -723,51 +734,52 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       )
                     else
-                      ListView.separated(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: p.length,
-                        separatorBuilder: (_, __) =>
-                            const SizedBox(height: 6),
-                        itemBuilder: (context, index) {
-                          final color =
-                              _kWheelColors[index % _kWheelColors.length];
-                          return Container(
-                            decoration: BoxDecoration(
-                              color: _kCard,
-                              borderRadius: BorderRadius.circular(9),
-                              border: Border(
-                                left: BorderSide(color: color, width: 4),
-                              ),
-                            ),
-                            child: ListTile(
-                              dense: true,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 0,
-                              ),
-                              title: Text(
-                                p[index].name,
-                                style: const TextStyle(
-                                  color: _kText,
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 14,
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (int index = 0; index < p.length; index++) ...[
+                            if (index > 0) const SizedBox(height: 6),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: _kCard,
+                                borderRadius: BorderRadius.circular(9),
+                                border: Border(
+                                  left: BorderSide(
+                                    color: _kWheelColors[
+                                        index % _kWheelColors.length],
+                                    width: 4,
+                                  ),
                                 ),
                               ),
-                              trailing: GestureDetector(
-                                onTap: () => provider.removePlayer(index),
-                                child: const Icon(
-                                  Icons.close,
-                                  color: _kTextSub,
-                                  size: 18,
+                              child: ListTile(
+                                dense: true,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 0,
+                                ),
+                                title: Text(
+                                  p[index].name,
+                                  style: const TextStyle(
+                                    color: _kText,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                trailing: GestureDetector(
+                                  onTap: () => provider.removePlayer(index),
+                                  child: const Icon(
+                                    Icons.close,
+                                    color: _kTextSub,
+                                    size: 18,
+                                  ),
                                 ),
                               ),
                             ),
-                          );
-                        },
+                          ],
+                        ],
                       ),
                     // Buttons row — 참가자 목록 바로 아래
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
@@ -834,7 +846,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // ── Wheel section ───────────────────────────────────────────────
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -942,6 +954,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           );
                                         }).toList(),
                                     onAnimationEnd: () {
+                                      _spinPlayer.stop();
                                       if (resultIndex == null ||
                                           resultIndex! >= p.length) return;
                                       final ci = resultIndex!;
@@ -952,6 +965,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                       });
                                       if (confirmedIndexes.length ==
                                           spinCount) {
+                                        HapticFeedback.heavyImpact();
+                                        Future.delayed(const Duration(milliseconds: 120), HapticFeedback.heavyImpact);
+                                        Future.delayed(const Duration(milliseconds: 240), HapticFeedback.heavyImpact);
+                                        _winPlayer.play(AssetSource('sounds/win.wav'));
                                         _confettiController.play();
                                       }
                                       Future.delayed(
