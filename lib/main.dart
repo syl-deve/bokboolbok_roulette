@@ -11,6 +11,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:bokboolbok_roulette/l10n/app_localizations.dart';
+import 'iap_service.dart';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const Color _kBg      = Color(0xFF0F172A);
@@ -166,7 +167,11 @@ class AdHelper {
     );
   }
 
-  static void showInterstitialAd(VoidCallback onAdClosedAfterDelay) {
+  static void showInterstitialAd(VoidCallback onAdClosedAfterDelay, {bool isAdFree = false}) {
+    if (isAdFree) {
+      onAdClosedAfterDelay();
+      return;
+    }
     if (_isAdLoaded && _interstitialAd != null) {
       _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
         onAdDismissedFullScreenContent: (ad) {
@@ -228,7 +233,8 @@ class _MyBannerAdState extends State<MyBannerAd> {
 
   @override
   Widget build(BuildContext context) {
-    if (_bannerAd == null) return const SizedBox.shrink();
+    final isAdFree = context.watch<PlayerProvider>().isAdFree;
+    if (isAdFree || _bannerAd == null) return const SizedBox.shrink();
     return SizedBox(
       width: _bannerAd!.size.width.toDouble(),
       height: _bannerAd!.size.height.toDouble(),
@@ -253,10 +259,12 @@ class PlayerProvider with ChangeNotifier {
   final List<Player> _players = [];
   Map<String, int> _history = {};
   List<Preset> _presets = [];
+  bool _isAdFree = false;
 
   List<Player> get players => _players;
   Map<String, int> get history => _history;
   List<Preset> get presets => _presets;
+  bool get isAdFree => _isAdFree;
 
   void addPlayer(String name) {
     final trimmed = name.trim();
@@ -277,6 +285,7 @@ class PlayerProvider with ChangeNotifier {
   Future<void> loadFromPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     final names = prefs.getStringList('players') ?? [];
+    _isAdFree = prefs.getBool('isAdFree') ?? false;
     _players.clear();
     _players.addAll(names.map((e) => Player(e)));
     await loadHistory();
@@ -391,19 +400,29 @@ class _HomeScreenState extends State<HomeScreen> {
   int spinCount = 1;
   List<Player> players = [];
 
-  // Sound
-  final AudioPlayer _spinPlayer = AudioPlayer();
   final AudioPlayer _winPlayer = AudioPlayer();
+  late IAPService _iapService;
 
   @override
   void initState() {
     super.initState();
     _confettiController =
         ConfettiController(duration: const Duration(seconds: 2));
+
+    _iapService = IAPService();
+    _iapService.onPurchaseSuccess = (success) {
+      if (success && mounted) {
+        context.read<PlayerProvider>().setAdFree(true);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Pro 버전이 활성화되었습니다!')),
+        );
+      }
+    };
   }
 
   @override
   void dispose() {
+    _iapService.dispose();
     _controller.dispose();
     _scrollController.dispose();
     _selected.close();
@@ -435,6 +454,7 @@ class _HomeScreenState extends State<HomeScreen> {
       selectedIndexes.clear();
       confirmedIndexes.clear();
     });
+    final isAdFree = context.read<PlayerProvider>().isAdFree;
     AdHelper.showInterstitialAd(() {
       if (!mounted) return;
       HapticFeedback.mediumImpact();

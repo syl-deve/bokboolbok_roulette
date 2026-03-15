@@ -1,0 +1,7 @@
+feat: IAP(인앱 결제) 광고 제거 기능 도입
+
+- in_app_purchase 패키지 연동
+- IAPService 클래스 구현 (결제/복원 로직)
+- PlayerProvider에 isAdFree 상태 및 로직 추가
+- 광고 유닛(전면, 배너)에 광고 제거 상태 반영
+- HomeScreen 앱바에 'PRO' 구매 버튼 추가
