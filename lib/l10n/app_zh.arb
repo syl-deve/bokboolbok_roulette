@@ -51,5 +51,8 @@
     "placeholders": {
       "count": {"type": "int"}
     }
-  }
+  },
+  "removeAds": "移除广告",
+  "restorePurchase": "恢复购买",
+  "proVersion": "PRO版本"
 }

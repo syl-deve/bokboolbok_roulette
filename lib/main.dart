@@ -586,28 +586,34 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             actions: [
-              if (!provider.isAdFree)
+              if (!provider.isAdFree) ...[
+                // 구매 복원 버튼
+                IconButton(
+                  icon: const Icon(Icons.restore, color: _kBlue, size: 20),
+                  tooltip: l10n.restorePurchase,
+                  onPressed: () => _iapService.restorePurchases(),
+                ),
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.only(right: 12),
                     child: GestureDetector(
                       onTap: () => _iapService.buyNonConsumable(),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(colors: [_kBlue, _kEmerald]),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.star, color: Colors.white, size: 14),
-                            SizedBox(width: 4),
+                            const Icon(Icons.star, color: Colors.white, size: 14),
+                            const SizedBox(width: 6),
                             Text(
-                              'PRO',
-                              style: TextStyle(
+                              l10n.removeAds,
+                              style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 11,
+                                fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -616,8 +622,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                )
-              else
+                ),
+              ] else
                 const Center(
                   child: Padding(
                     padding: EdgeInsets.only(right: 12),

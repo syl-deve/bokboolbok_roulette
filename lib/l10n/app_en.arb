@@ -51,5 +51,8 @@
     "placeholders": {
       "count": {"type": "int"}
     }
-  }
+  },
+  "removeAds": "Remove Ads",
+  "restorePurchase": "Restore",
+  "proVersion": "PRO Version"
 }

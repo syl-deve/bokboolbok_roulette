@@ -51,5 +51,8 @@
     "placeholders": {
       "count": {"type": "int"}
     }
-  }
+  },
+  "removeAds": "광고 제거",
+  "restorePurchase": "구매 복원",
+  "proVersion": "PRO 버전"
 }

@@ -51,5 +51,8 @@
     "placeholders": {
       "count": {"type": "int"}
     }
-  }
+  },
+  "removeAds": "広告を削除",
+  "restorePurchase": "購入を復원",
+  "proVersion": "PROバージョン"
 }
