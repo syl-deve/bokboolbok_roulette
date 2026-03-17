@@ -266,6 +266,13 @@ class PlayerProvider with ChangeNotifier {
   List<Preset> get presets => _presets;
   bool get isAdFree => _isAdFree;
 
+  void setAdFree(bool value) async {
+    _isAdFree = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isAdFree', value);
+    notifyListeners();
+  }
+
   void addPlayer(String name) {
     final trimmed = name.trim();
     if (trimmed.isNotEmpty &&
@@ -400,6 +407,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int spinCount = 1;
   List<Player> players = [];
 
+  final AudioPlayer _spinPlayer = AudioPlayer();
   final AudioPlayer _winPlayer = AudioPlayer();
   late IAPService _iapService;
 
@@ -472,7 +480,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _spinNext();
         }
       });
-    });
+    }, isAdFree: isAdFree);
   }
 
   void _spinNext() {
@@ -577,6 +585,46 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
+            actions: [
+              if (!provider.isAdFree)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: GestureDetector(
+                      onTap: () => _iapService.buyNonConsumable(),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(colors: [_kBlue, _kEmerald]),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.star, color: Colors.white, size: 14),
+                            SizedBox(width: 4),
+                            Text(
+                              'PRO',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+              else
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.only(right: 12),
+                    child: Icon(Icons.verified, color: _kEmerald, size: 24),
+                  ),
+                ),
+            ],
           ),
           body: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

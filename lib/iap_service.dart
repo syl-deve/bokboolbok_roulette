@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class IAPService {
   static const String productId = 'remove_ads_pro'; // 실제 스토어 등록 ID와 일치해야 함
