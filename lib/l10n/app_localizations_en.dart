@@ -122,4 +122,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String presetPersonCount(int count) {
     return '$count person(s)';
   }
+
+  @override
+  String get removeAds => 'Remove Ads';
+
+  @override
+  String get restorePurchase => 'Restore';
+
+  @override
+  String get proVersion => 'PRO Version';
 }

@@ -121,4 +121,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String presetPersonCount(int count) {
     return '$count명';
   }
+
+  @override
+  String get removeAds => '광고 제거';
+
+  @override
+  String get restorePurchase => '구매 복원';
+
+  @override
+  String get proVersion => 'PRO 버전';
 }

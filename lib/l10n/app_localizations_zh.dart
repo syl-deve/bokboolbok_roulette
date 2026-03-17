@@ -121,4 +121,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String presetPersonCount(int count) {
     return '$count人';
   }
+
+  @override
+  String get removeAds => '移除广告';
+
+  @override
+  String get restorePurchase => '恢复购买';
+
+  @override
+  String get proVersion => 'PRO版本';
 }

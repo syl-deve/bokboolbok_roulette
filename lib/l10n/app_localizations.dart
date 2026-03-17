@@ -317,6 +317,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} person(s)'**
   String presetPersonCount(int count);
+
+  /// No description provided for @removeAds.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Ads'**
+  String get removeAds;
+
+  /// No description provided for @restorePurchase.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restorePurchase;
+
+  /// No description provided for @proVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'PRO Version'**
+  String get proVersion;
 }
 
 class _AppLocalizationsDelegate

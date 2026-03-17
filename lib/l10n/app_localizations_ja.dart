@@ -121,4 +121,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String presetPersonCount(int count) {
     return '$count人';
   }
+
+  @override
+  String get removeAds => '広告を削除';
+
+  @override
+  String get restorePurchase => '購入を復원';
+
+  @override
+  String get proVersion => 'PROバージョン';
 }
