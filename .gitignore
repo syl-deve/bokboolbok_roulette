@@ -44,5 +44,10 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Android Keystore
+*.jks
+*.keystore
+
 # Google API Key / Client Secrets
 client_secret_989787212235-bssptnpbh0s8brba50qgl7971mt5rbrp.apps.googleusercontent.com.json
+admob_discord_alert.gs
