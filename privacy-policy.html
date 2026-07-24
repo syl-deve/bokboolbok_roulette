@@ -2,40 +2,132 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>개인정보처리방침</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>복불복룰렛 개인정보처리방침</title>
+  <style>
+    body {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 28px 20px 48px;
+      font-family: Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      line-height: 1.7;
+      color: #1f2937;
+    }
+    h1, h2 {
+      color: #111827;
+      line-height: 1.35;
+    }
+    h1 {
+      margin-bottom: 8px;
+      font-size: 30px;
+    }
+    h2 {
+      margin-top: 32px;
+      font-size: 20px;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 8px;
+    }
+    p, li {
+      font-size: 15px;
+    }
+    ul {
+      padding-left: 22px;
+    }
+    a {
+      color: #2563eb;
+    }
+    .meta {
+      color: #6b7280;
+      margin-top: 0;
+    }
+  </style>
 </head>
-<body style="font-family: Arial, sans-serif; padding: 20px;">
+<body>
   <h1>개인정보처리방침</h1>
-  <p>본 앱은 사용자 개인정보 보호를 매우 중요하게 생각하며, 다음과 같은 방식으로 데이터를 수집, 사용 및 보호합니다.</p>
+  <p class="meta">시행일: 2026년 7월 24일</p>
 
-  <h2>1. 수집하는 정보</h2>
+  <p>
+    복불복룰렛(이하 "앱")은 사용자의 개인정보를 중요하게 생각합니다. 본 방침은 앱에서 처리되는 정보,
+    이용 목적, 제3자 SDK 사용, 보관 및 삭제 방법을 설명합니다.
+  </p>
+
+  <h2>1. 처리하는 정보</h2>
+  <p>앱은 회원가입이나 자체 서버 로그인을 제공하지 않으며, 개발자가 직접 운영하는 서버로 사용자의 참가자 목록이나 당첨 기록을 전송하지 않습니다.</p>
   <ul>
-    <li>참가자 이름 (사용자가 직접 입력)</li>
-    <li>앱 내 당첨 히스토리 기록 (기기에만 저장)</li>
-    <li>Google 광고를 통한 광고 식별자 (비개인 식별 정보)</li>
+    <li>사용자가 직접 입력한 참가자 이름</li>
+    <li>사용자가 저장한 프리셋 이름 및 프리셋에 포함된 참가자 목록</li>
+    <li>앱 내 당첨 기록 및 당첨 횟수</li>
+    <li>광고 제공을 위해 Google AdMob SDK가 처리할 수 있는 광고 식별자, 기기 정보, 광고 상호작용 정보</li>
+    <li>인앱 결제 및 구매 복원을 위해 Google Play 결제 시스템이 처리하는 구매 상태 및 거래 관련 정보</li>
   </ul>
 
-  <h2>2. 정보의 사용 목적</h2>
+  <h2>2. 정보 이용 목적</h2>
   <ul>
-    <li>앱 내 참가자 목록 및 당첨자 기록 관리</li>
-    <li>사용자 경험 개선을 위한 광고 제공</li>
+    <li>룰렛 추첨 기능 제공</li>
+    <li>참가자 목록, 프리셋, 당첨 기록 저장 및 불러오기</li>
+    <li>광고 표시 및 광고 제거 PRO 구매 기능 제공</li>
+    <li>구매 내역 복원 및 결제 상태 확인</li>
+    <li>앱 안정성 유지 및 부정 사용 방지</li>
   </ul>
 
-  <h2>3. 제3자 제공</h2>
-  <p>앱은 수집된 정보를 제3자에게 판매하거나 공유하지 않습니다. 단, Google AdMob 광고를 위해 광고 ID 등 비개인 정보는 사용될 수 있습니다.</p>
+  <h2>3. 기기 내 저장 및 보관 기간</h2>
+  <p>
+    참가자 이름, 프리셋, 당첨 기록은 사용자의 기기 내 로컬 저장소에 저장됩니다. 해당 정보는 사용자가 앱에서 삭제하거나
+    앱 데이터를 삭제 또는 앱을 제거할 때까지 보관됩니다.
+  </p>
 
-  <h2>4. 저장 및 보안</h2>
-  <p>입력된 정보는 사용자의 기기 내에만 저장되며, 외부 서버로 전송되지 않습니다.</p>
+  <h2>4. 제3자 서비스 및 SDK</h2>
+  <p>
+    앱은 광고 및 결제 기능을 제공하기 위해 아래의 Google 서비스를 사용합니다. 각 서비스는 서비스 제공 과정에서
+    자체 정책에 따라 정보를 처리할 수 있습니다.
+  </p>
+  <ul>
+    <li>Google AdMob: 광고 표시, 광고 성과 측정, 부정 광고 방지</li>
+    <li>Google Play 결제: 광고 제거 PRO 상품 구매, 구매 상태 확인, 구매 복원</li>
+  </ul>
+  <p>
+    Google의 데이터 처리 방식은
+    <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google 개인정보처리방침</a> 및
+    <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer">Google 광고 관련 안내</a>에서 확인할 수 있습니다.
+  </p>
 
-  <h2>5. 어린이의 개인정보</h2>
-  <p>이 앱은 13세 미만 어린이를 대상으로 하지 않으며, 해당 연령대의 개인정보를 고의로 수집하지 않습니다.</p>
+  <h2>5. 제3자 제공</h2>
+  <p>
+    개발자는 사용자가 입력한 참가자 이름, 프리셋, 당첨 기록을 제3자에게 판매하거나 공유하지 않습니다.
+    다만 광고 및 결제 기능 제공을 위해 Google AdMob 및 Google Play 결제 SDK가 필요한 정보를 처리할 수 있습니다.
+  </p>
 
-  <h2>6. 정책 변경</h2>
-  <p>본 개인정보처리방침은 사전 고지 없이 변경될 수 있으며, 변경 시 앱 업데이트 또는 이 페이지를 통해 안내됩니다.</p>
+  <h2>6. 사용자 선택 및 삭제 방법</h2>
+  <ul>
+    <li>참가자 목록은 앱 내 삭제 기능으로 개별 삭제 또는 전체 삭제할 수 있습니다.</li>
+    <li>프리셋은 앱 내 프리셋 화면에서 삭제할 수 있습니다.</li>
+    <li>당첨 기록은 앱 내 기록 화면에서 초기화할 수 있습니다.</li>
+    <li>기기 설정에서 앱 데이터를 삭제하거나 앱을 제거하면 로컬에 저장된 데이터가 삭제됩니다.</li>
+    <li>광고 맞춤설정은 기기의 Google 광고 설정 또는 Android 개인정보 설정에서 변경할 수 있습니다.</li>
+  </ul>
 
-  <h2>7. 문의</h2>
-  <p>개인정보 관련 문의는 다음 이메일로 연락 주시기 바랍니다:<br/>
-  <a href="mailto:mythe627@naver.com">mythe627@naver.com</a></p>
+  <h2>7. 어린이의 개인정보</h2>
+  <p>
+    앱은 13세 미만 아동을 대상으로 하지 않으며, 개발자는 13세 미만 아동의 개인정보를 고의로 수집하지 않습니다.
+    보호자가 아동의 개인정보가 앱에 입력되었다고 판단하는 경우 아래 문의처로 연락해 주시기 바랍니다.
+  </p>
+
+  <h2>8. 보안</h2>
+  <p>
+    앱은 사용자가 입력한 참가자 관련 정보를 기기 내에 저장하며, 개발자가 직접 운영하는 외부 서버로 전송하지 않습니다.
+    다만 사용자의 기기 보안 상태, 운영체제 설정, Google SDK의 처리 환경에 따라 보호 수준이 달라질 수 있습니다.
+  </p>
+
+  <h2>9. 정책 변경</h2>
+  <p>
+    본 개인정보처리방침은 앱 기능, 법령, Google Play 정책 변경에 따라 수정될 수 있습니다.
+    중요한 변경사항이 있는 경우 앱 업데이트, Google Play 등록정보 또는 본 페이지를 통해 안내합니다.
+  </p>
+
+  <h2>10. 문의처</h2>
+  <p>
+    개인정보 관련 문의는 아래 이메일로 연락해 주시기 바랍니다.<br />
+    이메일: <a href="mailto:mythe627@naver.com">mythe627@naver.com</a>
+  </p>
 </body>
 </html>
