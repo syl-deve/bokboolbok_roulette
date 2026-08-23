@@ -24,6 +24,16 @@ const Color _kDisabled = Color(0xFFC8C8C8);
 const Color _kAction = Color(0xFFE60012);
 const Color _kSuccess = Color(0xFF468254);
 
+const SystemUiOverlayStyle _kLightSystemUiStyle = SystemUiOverlayStyle(
+  statusBarColor: _kBg,
+  statusBarIconBrightness: Brightness.dark,
+  statusBarBrightness: Brightness.light,
+  systemNavigationBarColor: _kBg,
+  systemNavigationBarIconBrightness: Brightness.dark,
+  systemNavigationBarDividerColor: _kBg,
+  systemNavigationBarContrastEnforced: false,
+);
+
 const List<Color> _kWheelColors = [
   Color(0xFFEF4444),
   Color(0xFFF97316),
@@ -52,6 +62,7 @@ const List<Color> _kWheelTextColors = [
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setSystemUIOverlayStyle(_kLightSystemUiStyle);
   MobileAds.instance.initialize();
   RequestConfiguration configuration = RequestConfiguration(
     testDeviceIds: ['D86D9B1F092E7C8CC61591C0B2B19CFE'],
@@ -59,7 +70,17 @@ void main() async {
   MobileAds.instance.updateRequestConfiguration(configuration);
   AdHelper.loadInterstitialAd();
   final playerProvider = PlayerProvider();
-  await playerProvider.loadFromPrefs();
+  final minimumSplashDuration = Future<void>.delayed(
+    const Duration(milliseconds: 1000),
+  );
+  try {
+    await Future.wait<void>([
+      playerProvider.loadFromPrefs(),
+      minimumSplashDuration,
+    ]);
+  } catch (error) {
+    debugPrint('Failed to load saved roulette data: $error');
+  }
   runApp(
     ChangeNotifierProvider(
       create: (_) => playerProvider,
@@ -597,7 +618,15 @@ class _HomeScreenState extends State<HomeScreen> {
           appBar: AppBar(
             title: Row(
               children: [
-                const Icon(Icons.casino, color: _kAction, size: 22),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(5),
+                  child: Image.asset(
+                    'assets/icon/app_icon.png',
+                    width: 24,
+                    height: 24,
+                    fit: BoxFit.cover,
+                  ),
+                ),
                 const SizedBox(width: 8),
                 _GradientText(
                   l10n.appTitle,
