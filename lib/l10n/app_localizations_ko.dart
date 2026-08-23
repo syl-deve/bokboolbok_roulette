@@ -27,7 +27,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get exampleName => '예: 홍길동';
 
   @override
-  String get noParticipants => '🙋‍♀️ 참가자를 추가해주세요!';
+  String get noParticipants => '참가자를 추가해주세요!';
 
   @override
   String get winner => '당첨자 수';
@@ -91,7 +91,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get savePreset => '현재 목록 저장';
 
   @override
-  String get noPresets => '📂 저장된 프리셋이 없습니다.';
+  String get noPresets => '저장된 프리셋이 없습니다.';
 
   @override
   String get presetNameHint => '프리셋 이름 입력';

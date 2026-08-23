@@ -27,7 +27,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get exampleName => '例：张三';
 
   @override
-  String get noParticipants => '🙋‍♀️ 请添加参与者！';
+  String get noParticipants => '请添加参与者！';
 
   @override
   String get winner => '中奖人数';
@@ -91,7 +91,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get savePreset => '保存当前列表';
 
   @override
-  String get noPresets => '📂 没有已保存的预设。';
+  String get noPresets => '没有已保存的预设。';
 
   @override
   String get presetNameHint => '输入预设名称';

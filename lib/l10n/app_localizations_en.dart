@@ -27,7 +27,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exampleName => 'Ex: John Doe';
 
   @override
-  String get noParticipants => '🙋‍♀️ Please add participants!';
+  String get noParticipants => 'Please add participants!';
 
   @override
   String get winner => 'No. of Winners';
@@ -92,7 +92,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get savePreset => 'Save Current List';
 
   @override
-  String get noPresets => '📂 No saved presets.';
+  String get noPresets => 'No saved presets.';
 
   @override
   String get presetNameHint => 'Enter preset name';

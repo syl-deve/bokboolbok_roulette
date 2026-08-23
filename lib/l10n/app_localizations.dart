@@ -141,7 +141,7 @@ abstract class AppLocalizations {
   /// No description provided for @noParticipants.
   ///
   /// In en, this message translates to:
-  /// **'🙋‍♀️ Please add participants!'**
+  /// **'Please add participants!'**
   String get noParticipants;
 
   /// No description provided for @winner.
@@ -261,7 +261,7 @@ abstract class AppLocalizations {
   /// No description provided for @noPresets.
   ///
   /// In en, this message translates to:
-  /// **'📂 No saved presets.'**
+  /// **'No saved presets.'**
   String get noPresets;
 
   /// No description provided for @presetNameHint.

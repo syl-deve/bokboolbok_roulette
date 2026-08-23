@@ -27,7 +27,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get exampleName => '例：田中太郎';
 
   @override
-  String get noParticipants => '🙋‍♀️ 参加者を追加してください！';
+  String get noParticipants => '参加者を追加してください！';
 
   @override
   String get winner => '当選者数';
@@ -91,7 +91,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get savePreset => '現在のリストを保存';
 
   @override
-  String get noPresets => '📂 保存されたプリセットがありません。';
+  String get noPresets => '保存されたプリセットがありません。';
 
   @override
   String get presetNameHint => 'プリセット名を入力';

@@ -14,14 +14,15 @@ import 'package:bokboolbok_roulette/l10n/app_localizations.dart';
 import 'iap_service.dart';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
-const Color _kBg      = Color(0xFF0F172A);
-const Color _kSurface = Color(0xFF1E293B);
-const Color _kCard    = Color(0xFF334155);
-const Color _kBorder  = Color(0xFF475569);
-const Color _kText    = Color(0xFFF1F5F9);
-const Color _kTextSub = Color(0xFF94A3B8);
-const Color _kBlue    = Color(0xFF3B82F6);
-const Color _kEmerald = Color(0xFF10B981);
+const Color _kBg = Color(0xFFFFFFFF);
+const Color _kSurface = Color(0xFFF8F8F8);
+const Color _kCard = Color(0xFFFFFFFF);
+const Color _kBorder = Color(0xFFE0E0E0);
+const Color _kText = Color(0xFF484848);
+const Color _kTextSub = Color(0xFF727272);
+const Color _kDisabled = Color(0xFFC8C8C8);
+const Color _kAction = Color(0xFFE60012);
+const Color _kSuccess = Color(0xFF468254);
 
 const List<Color> _kWheelColors = [
   Color(0xFFEF4444),
@@ -33,6 +34,19 @@ const List<Color> _kWheelColors = [
   Color(0xFF8B5CF6),
   Color(0xFFD946EF),
   Color(0xFFF43F5E),
+];
+
+// 각 휠 색상 위에서 가독성이 좋은 텍스트 색 (노랑·초록·청록은 밝아서 흰 글씨 대비가 낮음)
+const List<Color> _kWheelTextColors = [
+  Colors.white, // red
+  Colors.white, // orange
+  _kText, // yellow
+  _kText, // green
+  _kText, // cyan
+  Colors.white, // blue
+  Colors.white, // violet
+  Colors.white, // fuchsia
+  Colors.white, // rose
 ];
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -59,24 +73,24 @@ void main() async {
         ],
         supportedLocales: AppLocalizations.supportedLocales,
         theme: ThemeData(
-          brightness: Brightness.dark,
+          brightness: Brightness.light,
           scaffoldBackgroundColor: _kBg,
-          colorScheme: const ColorScheme.dark(
-            primary: _kBlue,
-            secondary: _kEmerald,
+          colorScheme: const ColorScheme.light(
+            primary: _kAction,
+            secondary: _kSuccess,
             surface: _kSurface,
             onPrimary: Colors.white,
             onSecondary: Colors.white,
             onSurface: _kText,
           ),
           appBarTheme: const AppBarTheme(
-            backgroundColor: _kSurface,
+            backgroundColor: _kCard,
             foregroundColor: _kText,
             elevation: 0,
             centerTitle: false,
             titleTextStyle: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+              fontSize: 21,
+              fontWeight: FontWeight.w600,
               color: _kText,
             ),
           ),
@@ -90,32 +104,30 @@ void main() async {
           ),
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
-              backgroundColor: _kBlue,
+              backgroundColor: _kAction,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(8),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              minimumSize: const Size(0, 48),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               textStyle: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                fontSize: 18,
               ),
             ),
           ),
           inputDecorationTheme: InputDecorationTheme(
             filled: true,
-            fillColor: _kBg,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: _kBorder),
+            fillColor: _kCard,
+            border: const UnderlineInputBorder(
+              borderSide: BorderSide(color: _kBorder),
             ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: _kBorder),
+            enabledBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: _kBorder),
             ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: _kBlue, width: 2),
+            focusedBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: _kAction, width: 2),
             ),
             labelStyle: const TextStyle(color: _kTextSub),
             hintStyle: const TextStyle(color: _kBorder),
@@ -123,15 +135,15 @@ void main() async {
             suffixIconColor: _kTextSub,
           ),
           bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-            backgroundColor: _kSurface,
-            selectedItemColor: _kBlue,
+            backgroundColor: _kCard,
+            selectedItemColor: _kAction,
             unselectedItemColor: _kTextSub,
             elevation: 0,
           ),
           dividerColor: _kBorder,
           iconTheme: const IconThemeData(color: _kTextSub),
           textButtonTheme: TextButtonThemeData(
-            style: TextButton.styleFrom(foregroundColor: _kBlue),
+            style: TextButton.styleFrom(foregroundColor: _kAction),
           ),
         ),
         home: const HomeScreen(),
@@ -167,7 +179,10 @@ class AdHelper {
     );
   }
 
-  static void showInterstitialAd(VoidCallback onAdClosedAfterDelay, {bool isAdFree = false}) {
+  static void showInterstitialAd(
+    VoidCallback onAdClosedAfterDelay, {
+    bool isAdFree = false,
+  }) {
     if (isAdFree) {
       onAdClosedAfterDelay();
       return;
@@ -341,11 +356,15 @@ class PlayerProvider with ChangeNotifier {
   Future<void> _loadPresets() async {
     final prefs = await SharedPreferences.getInstance();
     final encoded = prefs.getStringList('presets') ?? [];
-    _presets = encoded.map((e) {
-      final parts = e.split('\x00');
-      if (parts.length < 2) return null;
-      return Preset(name: parts[0], players: parts.sublist(1));
-    }).whereType<Preset>().toList();
+    _presets =
+        encoded
+            .map((e) {
+              final parts = e.split('\x00');
+              if (parts.length < 2) return null;
+              return Preset(name: parts[0], players: parts.sublist(1));
+            })
+            .whereType<Preset>()
+            .toList();
   }
 
   Future<void> _savePresets() async {
@@ -414,16 +433,17 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _confettiController =
-        ConfettiController(duration: const Duration(seconds: 2));
+    _confettiController = ConfettiController(
+      duration: const Duration(seconds: 2),
+    );
 
     _iapService = IAPService();
     _iapService.onPurchaseSuccess = (success) {
       if (success && mounted) {
         context.read<PlayerProvider>().setAdFree(true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pro 버전이 활성화되었습니다!')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Pro 버전이 활성화되었습니다!')));
       }
     };
   }
@@ -484,9 +504,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _spinNext() {
-    final available = List.generate(players.length, (i) => i)
-        .where((i) => !selectedIndexes.contains(i))
-        .toList();
+    final available =
+        List.generate(
+          players.length,
+          (i) => i,
+        ).where((i) => !selectedIndexes.contains(i)).toList();
 
     if (selectedIndexes.length >= spinCount || available.isEmpty) {
       setState(() => _isSpinning = false);
@@ -506,23 +528,24 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.black.withOpacity(0.7),
-      builder: (ctx) => _WinnerDialog(
-        winners: winners,
-        onClose: () {
-          Navigator.pop(ctx);
-          _resetGame();
-          _spinButtonFocusNode.requestFocus();
-          _scrollToBottom();
-        },
-        onSpinAgain: () {
-          Navigator.pop(ctx);
-          _resetGame();
-          FocusScope.of(context).unfocus();
-          Future.delayed(const Duration(milliseconds: 100), () {
-            if (mounted) _startSpinning(players);
-          });
-        },
-      ),
+      builder:
+          (ctx) => _WinnerDialog(
+            winners: winners,
+            onClose: () {
+              Navigator.pop(ctx);
+              _resetGame();
+              _spinButtonFocusNode.requestFocus();
+              _scrollToBottom();
+            },
+            onSpinAgain: () {
+              Navigator.pop(ctx);
+              _resetGame();
+              FocusScope.of(context).unfocus();
+              Future.delayed(const Duration(milliseconds: 100), () {
+                if (mounted) _startSpinning(players);
+              });
+            },
+          ),
     );
   }
 
@@ -542,7 +565,7 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: _kSurface,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
       ),
       builder: (_) => _PresetSheet(l10n: l10n),
     );
@@ -552,10 +575,10 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showHistorySheet(BuildContext context, AppLocalizations l10n) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: _kSurface,
+      backgroundColor: _kCard,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
       ),
       builder: (_) => _HistorySheet(l10n: l10n),
     );
@@ -574,13 +597,13 @@ class _HomeScreenState extends State<HomeScreen> {
           appBar: AppBar(
             title: Row(
               children: [
-                const Icon(Icons.casino, color: _kBlue, size: 22),
+                const Icon(Icons.casino, color: _kAction, size: 22),
                 const SizedBox(width: 8),
                 _GradientText(
                   l10n.appTitle,
                   style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 21,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -589,7 +612,7 @@ class _HomeScreenState extends State<HomeScreen> {
               if (!provider.isAdFree) ...[
                 // 구매 복원 버튼
                 IconButton(
-                  icon: const Icon(Icons.restore, color: _kBlue, size: 20),
+                  icon: const Icon(Icons.restore, color: _kAction, size: 20),
                   tooltip: l10n.restorePurchase,
                   onPressed: () => _iapService.restorePurchases(),
                 ),
@@ -599,15 +622,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: GestureDetector(
                       onTap: () => _iapService.buyNonConsumable(),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(colors: [_kBlue, _kEmerald]),
+                          color: _kAction,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.star, color: Colors.white, size: 14),
+                            const Icon(
+                              Icons.star,
+                              color: Colors.white,
+                              size: 14,
+                            ),
                             const SizedBox(width: 6),
                             Text(
                               l10n.removeAds,
@@ -627,7 +657,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const Center(
                   child: Padding(
                     padding: EdgeInsets.only(right: 12),
-                    child: Icon(Icons.verified, color: _kEmerald, size: 24),
+                    child: Icon(Icons.verified, color: _kSuccess, size: 24),
                   ),
                 ),
             ],
@@ -641,497 +671,612 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-              // ── Top section ─────────────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Input row
-                    Container(
-                      decoration: BoxDecoration(
-                        color: _kSurface,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: _kBorder),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _controller,
-                              onSubmitted: (_) {
-                                provider.addPlayer(_controller.text);
-                                _controller.clear();
-                              },
-                              style: const TextStyle(color: _kText),
-                              decoration: InputDecoration(
-                                hintText: l10n.enterParticipantName,
-                                border: InputBorder.none,
-                                enabledBorder: InputBorder.none,
-                                focusedBorder: InputBorder.none,
-                                filled: false,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 13,
-                                ),
-                              ),
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              provider.addPlayer(_controller.text);
-                              _controller.clear();
-                            },
-                            child: Container(
-                              margin: const EdgeInsets.all(6),
-                              padding: const EdgeInsets.all(9),
-                              decoration: BoxDecoration(
-                                color: _kBlue,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Icon(
-                                Icons.add,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    // No. of Winners stepper
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 9,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _kSurface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: _kBorder),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            l10n.winner,
-                            style: const TextStyle(
-                              color: _kText,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                            ),
-                          ),
-                          Row(
-                            children: [
-                              _StepperButton(
-                                icon: Icons.remove,
-                                onPressed: _isSpinning || spinCount <= 1
-                                    ? null
-                                    : () {
-                                        setState(() => spinCount--);
-                                        _resetGame();
-                                      },
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                ),
-                                child: Text(
-                                  '$spinCount',
-                                  style: const TextStyle(
-                                    color: _kEmerald,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 17,
-                                  ),
-                                ),
-                              ),
-                              _StepperButton(
-                                icon: Icons.add,
-                                onPressed: _isSpinning ||
-                                        p.length <= 1 ||
-                                        spinCount >= p.length - 1
-                                    ? null
-                                    : () {
-                                        setState(() => spinCount++);
-                                        _resetGame();
-                                      },
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Participants header
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '${l10n.participants.toUpperCase()} (${p.length})',
-                          style: const TextStyle(
-                            color: _kTextSub,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.8,
-                          ),
-                        ),
-                        if (p.isNotEmpty)
-                          GestureDetector(
-                            onTap: () {
-                              for (var i = p.length - 1; i >= 0; i--) {
-                                provider.removePlayer(i);
-                              }
-                            },
-                            child: Text(
-                              l10n.clearAll,
-                              style: const TextStyle(
-                                color: Color(0xFFF87171),
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-
-                    // Participants list (전체 표시, 제한 없음)
-                    if (p.isEmpty)
+                      // ── Top section ─────────────────────────────────────────────────
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Text(
-                          l10n.noParticipants,
-                          style: const TextStyle(
-                            color: _kTextSub,
-                            fontStyle: FontStyle.italic,
-                            fontSize: 13,
-                          ),
-                        ),
-                      )
-                    else
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          for (int index = 0; index < p.length; index++) ...[
-                            if (index > 0) const SizedBox(height: 6),
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Input row
                             Container(
                               decoration: BoxDecoration(
                                 color: _kCard,
-                                borderRadius: BorderRadius.circular(9),
-                                border: Border(
-                                  left: BorderSide(
-                                    color: _kWheelColors[
-                                        index % _kWheelColors.length],
-                                    width: 4,
-                                  ),
-                                ),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: _kBorder),
                               ),
-                              child: ListTile(
-                                dense: true,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 0,
-                                ),
-                                title: Text(
-                                  p[index].name,
-                                  style: const TextStyle(
-                                    color: _kText,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 14,
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      controller: _controller,
+                                      onSubmitted: (_) {
+                                        provider.addPlayer(_controller.text);
+                                        _controller.clear();
+                                      },
+                                      style: const TextStyle(color: _kText),
+                                      decoration: InputDecoration(
+                                        hintText: l10n.enterParticipantName,
+                                        border: InputBorder.none,
+                                        enabledBorder: InputBorder.none,
+                                        focusedBorder: InputBorder.none,
+                                        filled: false,
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 13,
+                                            ),
+                                      ),
+                                    ),
                                   ),
-                                ),
-                                trailing: GestureDetector(
-                                  onTap: () => provider.removePlayer(index),
-                                  child: const Icon(
-                                    Icons.close,
-                                    color: _kTextSub,
-                                    size: 18,
+                                  GestureDetector(
+                                    onTap: () {
+                                      provider.addPlayer(_controller.text);
+                                      _controller.clear();
+                                    },
+                                    child: Container(
+                                      margin: const EdgeInsets.all(6),
+                                      padding: const EdgeInsets.all(9),
+                                      decoration: BoxDecoration(
+                                        color: _kAction,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Icon(
+                                        Icons.add,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                ],
                               ),
                             ),
-                          ],
-                        ],
-                      ),
-                    // Buttons row — 참가자 목록 바로 아래
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        OutlinedButton.icon(
-                          onPressed: () => _showPresetSheet(context, l10n),
-                          icon: const Icon(
-                            Icons.bookmark_outline,
-                            size: 15,
-                            color: _kTextSub,
-                          ),
-                          label: Text(
-                            l10n.presets,
-                            style: const TextStyle(
-                              color: _kTextSub,
-                              fontSize: 13,
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            side: const BorderSide(color: _kBorder),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        OutlinedButton.icon(
-                          onPressed: () => _showHistorySheet(context, l10n),
-                          icon: const Icon(
-                            Icons.history,
-                            size: 15,
-                            color: _kTextSub,
-                          ),
-                          label: Text(
-                            l10n.history,
-                            style: const TextStyle(
-                              color: _kTextSub,
-                              fontSize: 13,
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            side: const BorderSide(color: _kBorder),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+                            const SizedBox(height: 8),
 
-              // ── Wheel section ───────────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Wheel (AspectRatio로 정사각형 고정)
-                    Stack(
-                      children: [
-                        AspectRatio(
-                          aspectRatio: 1,
-                          child: Stack(
-                            children: [
-                              // 외곽 림(rim) — 그라디언트 + 입체 그림자
-                              Container(
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: const SweepGradient(
-                                    colors: [
-                                      Color(0xFFFFFFFF),
-                                      Color(0xFFCCCCCC),
-                                      Color(0xFFFFFFFF),
-                                      Color(0xFF999999),
-                                      Color(0xFFFFFFFF),
+                            // No. of Winners stepper
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 9,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _kCard,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: _kBorder),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    l10n.winner,
+                                    style: const TextStyle(
+                                      color: _kText,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  Row(
+                                    children: [
+                                      _StepperButton(
+                                        icon: Icons.remove,
+                                        onPressed:
+                                            _isSpinning || spinCount <= 1
+                                                ? null
+                                                : () {
+                                                  setState(() => spinCount--);
+                                                  _resetGame();
+                                                },
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                        ),
+                                        child: Text(
+                                          '$spinCount',
+                                          style: const TextStyle(
+                                            color: _kSuccess,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 17,
+                                          ),
+                                        ),
+                                      ),
+                                      _StepperButton(
+                                        icon: Icons.add,
+                                        onPressed:
+                                            _isSpinning ||
+                                                    p.length <= 1 ||
+                                                    spinCount >= p.length - 1
+                                                ? null
+                                                : () {
+                                                  setState(() => spinCount++);
+                                                  _resetGame();
+                                                },
+                                      ),
                                     ],
                                   ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: _kBlue.withOpacity(0.55),
-                                      spreadRadius: 5,
-                                      blurRadius: 28,
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+
+                            // Participants header
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '${l10n.participants.toUpperCase()} (${p.length})',
+                                  style: const TextStyle(
+                                    color: _kTextSub,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.8,
+                                  ),
+                                ),
+                                if (p.isNotEmpty)
+                                  GestureDetector(
+                                    onTap: () {
+                                      for (var i = p.length - 1; i >= 0; i--) {
+                                        provider.removePlayer(i);
+                                      }
+                                    },
+                                    child: Text(
+                                      l10n.clearAll,
+                                      style: const TextStyle(
+                                        color: _kAction,
+                                        fontSize: 12,
+                                      ),
                                     ),
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.7),
-                                      offset: const Offset(0, 10),
-                                      blurRadius: 24,
-                                      spreadRadius: 2,
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+
+                            // Participants list — 참가자가 많아도 목록은 고정 높이(내부 스크롤)로
+                            // 접어서 룰렛·스핀 버튼이 항상 화면 안에 보이도록 함
+                            if (p.isEmpty)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.person_add_alt_outlined,
+                                      color: _kTextSub,
+                                      size: 16,
                                     ),
-                                    BoxShadow(
-                                      color: Colors.white.withOpacity(0.12),
-                                      offset: const Offset(-3, -6),
-                                      blurRadius: 14,
-                                      spreadRadius: -2,
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      l10n.noParticipants,
+                                      style: const TextStyle(
+                                        color: _kTextSub,
+                                        fontStyle: FontStyle.italic,
+                                        fontSize: 13,
+                                      ),
                                     ),
                                   ],
                                 ),
-                              ),
-                              // 휠 (림 안쪽에 패딩으로 띄움)
-                              Padding(
-                                padding: const EdgeInsets.all(7),
-                                child: p.length < 2
-                                    ? Center(
-                                        child: Text(
-                                          l10n.noParticipants,
-                                          style: const TextStyle(
-                                            color: _kTextSub,
-                                          ),
+                              )
+                            else
+                              SizedBox(
+                                height: 176,
+                                child: Scrollbar(
+                                  thumbVisibility: p.length > 3,
+                                  child: ListView.separated(
+                                    padding: EdgeInsets.zero,
+                                    itemCount: p.length,
+                                    separatorBuilder:
+                                        (_, __) => const SizedBox(height: 6),
+                                    itemBuilder: (context, index) {
+                                      final wheelColor =
+                                          _kWheelColors[index %
+                                              _kWheelColors.length];
+                                      final onWheelColor =
+                                          _kWheelTextColors[index %
+                                              _kWheelTextColors.length];
+                                      return Container(
+                                        height: 48,
+                                        padding: const EdgeInsets.only(
+                                          left: 8,
+                                          right: 4,
                                         ),
-                                      )
-                                    : FortuneWheel(
-                                        selected: _selected.stream,
-                                        animateFirst: false,
-                                        indicators: const [
-                                          FortuneIndicator(
-                                            alignment: Alignment.topCenter,
-                                            child: TriangleIndicator(
-                                              color: Colors.white,
-                                              width: 28,
-                                              height: 28,
-                                            ),
+                                        decoration: BoxDecoration(
+                                          color: _kCard,
+                                          borderRadius: BorderRadius.circular(
+                                            12,
                                           ),
-                                        ],
-                                        physics: CircularPanPhysics(
-                                          duration:
-                                              const Duration(seconds: 2),
-                                          curve: Curves.easeOutCubic,
+                                          border: Border.all(color: _kBorder),
                                         ),
-                                        items: p.asMap().entries.map((e) {
-                                          final color = _kWheelColors[
-                                              e.key % _kWheelColors.length];
-                                          return FortuneItem(
-                                            child: Text(
-                                              e.value.name,
-                                              style: const TextStyle(
-                                                fontSize: 26,
-                                                fontWeight: FontWeight.w900,
-                                                color: Colors.white,
-                                                shadows: [
-                                                  Shadow(
-                                                    color: Colors.black87,
-                                                    blurRadius: 6,
-                                                    offset: Offset(0, 2),
-                                                  ),
-                                                  Shadow(
-                                                    color: Colors.black54,
-                                                    blurRadius: 14,
-                                                  ),
-                                                ],
+                                        child: Row(
+                                          children: [
+                                            CircleAvatar(
+                                              radius: 16,
+                                              backgroundColor: wheelColor,
+                                              child: Text(
+                                                p[index].name.substring(0, 1),
+                                                style: TextStyle(
+                                                  color: onWheelColor,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 13,
+                                                ),
                                               ),
-                                              textAlign: TextAlign.center,
                                             ),
-                                            style: FortuneItemStyle(
-                                              color: color,
-                                              borderColor: Colors.white
-                                                  .withOpacity(0.65),
-                                              borderWidth: 3,
+                                            const SizedBox(width: 10),
+                                            Expanded(
+                                              child: Text(
+                                                p[index].name,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  color: _kText,
+                                                  fontWeight: FontWeight.w500,
+                                                  fontSize: 14,
+                                                ),
+                                              ),
                                             ),
-                                          );
-                                        }).toList(),
-                                    onAnimationEnd: () {
-                                      _spinPlayer.stop();
-                                      if (resultIndex == null ||
-                                          resultIndex! >= p.length) return;
-                                      final ci = resultIndex!;
-                                      provider.addHistory(p[ci].name);
-                                      setState(() {
-                                        selectedIndexes.add(ci);
-                                        confirmedIndexes.add(ci);
-                                      });
-                                      if (confirmedIndexes.length ==
-                                          spinCount) {
-                                        HapticFeedback.heavyImpact();
-                                        Future.delayed(const Duration(milliseconds: 120), HapticFeedback.heavyImpact);
-                                        Future.delayed(const Duration(milliseconds: 240), HapticFeedback.heavyImpact);
-                                        _winPlayer.play(AssetSource('sounds/win.wav'));
-                                        _confettiController.play();
-                                      }
-                                      Future.delayed(
-                                        const Duration(milliseconds: 800),
-                                        _spinNext,
+                                            GestureDetector(
+                                              onTap:
+                                                  () => provider.removePlayer(
+                                                    index,
+                                                  ),
+                                              child: const SizedBox(
+                                                width: 44,
+                                                height: 44,
+                                                child: Icon(
+                                                  Icons.close,
+                                                  color: _kTextSub,
+                                                  size: 18,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       );
                                     },
                                   ),
+                                ),
                               ),
-                            ],
-                          ),
-                        ),
-                        // Confetti
-                        Align(
-                          alignment: Alignment.center,
-                          child: IgnorePointer(
-                            child: ConfettiWidget(
-                              confettiController: _confettiController,
-                              blastDirectionality:
-                                  BlastDirectionality.explosive,
-                              shouldLoop: false,
-                              emissionFrequency: 0.05,
-                              numberOfParticles: 30,
-                              maxBlastForce: 20,
-                              minBlastForce: 5,
-                              gravity: 0.3,
+                            // Buttons row — 참가자 목록 바로 아래
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                OutlinedButton.icon(
+                                  onPressed:
+                                      () => _showPresetSheet(context, l10n),
+                                  icon: const Icon(
+                                    Icons.bookmark_outline,
+                                    size: 15,
+                                    color: _kTextSub,
+                                  ),
+                                  label: Text(
+                                    l10n.presets,
+                                    style: const TextStyle(
+                                      color: _kTextSub,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 12,
+                                    ),
+                                    minimumSize: const Size(0, 44),
+                                    side: const BorderSide(color: _kBorder),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                OutlinedButton.icon(
+                                  onPressed:
+                                      () => _showHistorySheet(context, l10n),
+                                  icon: const Icon(
+                                    Icons.history,
+                                    size: 15,
+                                    color: _kTextSub,
+                                  ),
+                                  label: Text(
+                                    l10n.history,
+                                    style: const TextStyle(
+                                      color: _kTextSub,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 12,
+                                    ),
+                                    minimumSize: const Size(0, 44),
+                                    side: const BorderSide(color: _kBorder),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              // ── Spin button section ──────────────────────────────────────────
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                child: Column(
-                  children: [
-                    if (!_isSpinning && p.length >= 2)
-                      _GradientSpinButton(
-                        label: l10n.spinRoulette,
-                        focusNode: _spinButtonFocusNode,
-                        onPressed: () {
-                          _resetGame();
-                          _startSpinning(p);
-                        },
-                      )
-                    else if (_isSpinning)
-                      const SizedBox(
-                        width: 28,
-                        height: 28,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: _kEmerald,
-                        ),
-                      )
-                    else
-                      const SizedBox(height: 54),
-                    const SizedBox(height: 5),
-                    Text(
-                      _isSpinning
-                          ? l10n.findingWinner(confirmedIndexes.length + 1, spinCount)
-                          : l10n.selectingWinners(spinCount),
-                      style: const TextStyle(
-                        color: _kTextSub,
-                        fontSize: 12,
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-                ),
-              ),
 
+                      // ── Wheel section ───────────────────────────────────────────────
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Wheel (AspectRatio로 정사각형 고정)
+                            Stack(
+                              children: [
+                                AspectRatio(
+                                  aspectRatio: 1,
+                                  child: Stack(
+                                    children: [
+                                      // 외곽 림(rim) — 그라디언트 + 입체 그림자
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          gradient: const SweepGradient(
+                                            colors: [
+                                              _kCard,
+                                              _kBorder,
+                                              _kCard,
+                                              _kSurface,
+                                              _kCard,
+                                            ],
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(
+                                                0.07,
+                                              ),
+                                              offset: const Offset(0, 2),
+                                              blurRadius: 8,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      // 휠 (림 안쪽에 패딩으로 띄움)
+                                      Padding(
+                                        padding: const EdgeInsets.all(7),
+                                        child:
+                                            p.length < 2
+                                                ? Center(
+                                                  child: Text(
+                                                    l10n.noParticipants,
+                                                    style: const TextStyle(
+                                                      color: _kTextSub,
+                                                    ),
+                                                  ),
+                                                )
+                                                : FortuneWheel(
+                                                  selected: _selected.stream,
+                                                  animateFirst: false,
+                                                  indicators: const [
+                                                    FortuneIndicator(
+                                                      alignment:
+                                                          Alignment.topCenter,
+                                                      child: TriangleIndicator(
+                                                        color: Colors.white,
+                                                        width: 28,
+                                                        height: 28,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                  physics: CircularPanPhysics(
+                                                    duration: const Duration(
+                                                      seconds: 2,
+                                                    ),
+                                                    curve: Curves.easeOutCubic,
+                                                  ),
+                                                  items:
+                                                      p.asMap().entries.map((
+                                                        e,
+                                                      ) {
+                                                        final color =
+                                                            _kWheelColors[e
+                                                                    .key %
+                                                                _kWheelColors
+                                                                    .length];
+                                                        final textColor =
+                                                            _kWheelTextColors[e
+                                                                    .key %
+                                                                _kWheelTextColors
+                                                                    .length];
+                                                        final onLightColor =
+                                                            textColor == _kText;
+                                                        // 참가자가 많을수록 조각이 좁아지므로
+                                                        // 기본 글자 크기를 줄이고, 이름이 길면 추가로 축소
+                                                        final baseFontSize =
+                                                            p.length <= 3
+                                                                ? 26.0
+                                                                : p.length <= 5
+                                                                ? 22.0
+                                                                : p.length <= 8
+                                                                ? 18.0
+                                                                : 14.0;
+                                                        return FortuneItem(
+                                                          child: FittedBox(
+                                                            fit:
+                                                                BoxFit
+                                                                    .scaleDown,
+                                                            child: Text(
+                                                              e.value.name,
+                                                              style: TextStyle(
+                                                                fontSize:
+                                                                    baseFontSize,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w900,
+                                                                color:
+                                                                    textColor,
+                                                                shadows:
+                                                                    onLightColor
+                                                                        ? const []
+                                                                        : const [
+                                                                          Shadow(
+                                                                            color:
+                                                                                Colors.black87,
+                                                                            blurRadius:
+                                                                                6,
+                                                                            offset: Offset(
+                                                                              0,
+                                                                              2,
+                                                                            ),
+                                                                          ),
+                                                                          Shadow(
+                                                                            color:
+                                                                                Colors.black54,
+                                                                            blurRadius:
+                                                                                14,
+                                                                          ),
+                                                                        ],
+                                                              ),
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .center,
+                                                            ),
+                                                          ),
+                                                          style: FortuneItemStyle(
+                                                            color: color,
+                                                            borderColor: Colors
+                                                                .white
+                                                                .withOpacity(
+                                                                  0.65,
+                                                                ),
+                                                            borderWidth: 3,
+                                                          ),
+                                                        );
+                                                      }).toList(),
+                                                  onAnimationEnd: () {
+                                                    _spinPlayer.stop();
+                                                    if (resultIndex == null ||
+                                                        resultIndex! >=
+                                                            p.length)
+                                                      return;
+                                                    final ci = resultIndex!;
+                                                    provider.addHistory(
+                                                      p[ci].name,
+                                                    );
+                                                    setState(() {
+                                                      selectedIndexes.add(ci);
+                                                      confirmedIndexes.add(ci);
+                                                    });
+                                                    if (confirmedIndexes
+                                                            .length ==
+                                                        spinCount) {
+                                                      HapticFeedback.heavyImpact();
+                                                      Future.delayed(
+                                                        const Duration(
+                                                          milliseconds: 120,
+                                                        ),
+                                                        HapticFeedback
+                                                            .heavyImpact,
+                                                      );
+                                                      Future.delayed(
+                                                        const Duration(
+                                                          milliseconds: 240,
+                                                        ),
+                                                        HapticFeedback
+                                                            .heavyImpact,
+                                                      );
+                                                      _winPlayer.play(
+                                                        AssetSource(
+                                                          'sounds/win.wav',
+                                                        ),
+                                                      );
+                                                      _confettiController
+                                                          .play();
+                                                    }
+                                                    Future.delayed(
+                                                      const Duration(
+                                                        milliseconds: 800,
+                                                      ),
+                                                      _spinNext,
+                                                    );
+                                                  },
+                                                ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                // Confetti
+                                Align(
+                                  alignment: Alignment.center,
+                                  child: IgnorePointer(
+                                    child: ConfettiWidget(
+                                      confettiController: _confettiController,
+                                      blastDirectionality:
+                                          BlastDirectionality.explosive,
+                                      shouldLoop: false,
+                                      emissionFrequency: 0.05,
+                                      numberOfParticles: 30,
+                                      maxBlastForce: 20,
+                                      minBlastForce: 5,
+                                      gravity: 0.3,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // ── Spin button section ──────────────────────────────────────────
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        child: Column(
+                          children: [
+                            if (!_isSpinning && p.length >= 2)
+                              _GradientSpinButton(
+                                label: l10n.spinRoulette,
+                                focusNode: _spinButtonFocusNode,
+                                onPressed: () {
+                                  _resetGame();
+                                  _startSpinning(p);
+                                },
+                              )
+                            else if (_isSpinning)
+                              const SizedBox(
+                                width: 28,
+                                height: 28,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  color: _kSuccess,
+                                ),
+                              )
+                            else
+                              const SizedBox(height: 54),
+                            const SizedBox(height: 5),
+                            Text(
+                              _isSpinning
+                                  ? l10n.findingWinner(
+                                    confirmedIndexes.length + 1,
+                                    spinCount,
+                                  )
+                                  : l10n.selectingWinners(spinCount),
+                              style: const TextStyle(
+                                color: _kTextSub,
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                          ],
+                        ),
+                      ),
                     ], // SingleChildScrollView > Column children
                   ),
                 ),
               ), // Expanded
 
-              SafeArea(
-                top: false,
-                child: const MyBannerAd(),
-              ),
+              SafeArea(top: false, child: const MyBannerAd()),
             ],
           ),
         );
@@ -1148,185 +1293,189 @@ class _HistorySheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<PlayerProvider>(context);
-    final entries = provider.history.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+    final entries =
+        provider.history.entries.toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
 
     return DraggableScrollableSheet(
       expand: false,
       initialChildSize: 0.55,
       minChildSize: 0.35,
       maxChildSize: 0.85,
-      builder: (_, scrollController) => Column(
-        children: [
-          // Handle
-          Container(
-            margin: const EdgeInsets.only(top: 12, bottom: 8),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: _kBorder,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
+      builder:
+          (_, scrollController) => Column(
+            children: [
+              // Handle
+              Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: _kBorder,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
 
-          // Title row
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
+              // Title row
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 4,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Icon(Icons.history, color: _kBlue, size: 20),
-                    const SizedBox(width: 8),
-                    _GradientText(
-                      l10n.history,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                      ),
+                    Row(
+                      children: [
+                        const Icon(Icons.history, color: _kAction, size: 20),
+                        const SizedBox(width: 8),
+                        _GradientText(
+                          l10n.history,
+                          style: const TextStyle(
+                            fontSize: 21,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
+                    if (entries.isNotEmpty)
+                      GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder:
+                                (_) => AlertDialog(
+                                  backgroundColor: _kCard,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    side: const BorderSide(color: _kBorder),
+                                  ),
+                                  title: Text(
+                                    l10n.resetHistory,
+                                    style: const TextStyle(color: _kText),
+                                  ),
+                                  content: Text(
+                                    l10n.confirmResetHistory,
+                                    style: const TextStyle(color: _kTextSub),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      child: Text(l10n.cancel),
+                                      onPressed: () => Navigator.pop(context),
+                                    ),
+                                    TextButton(
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: _kAction,
+                                      ),
+                                      child: Text(l10n.reset),
+                                      onPressed: () {
+                                        provider.clearHistory();
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                  ],
+                                ),
+                          );
+                        },
+                        child: Text(
+                          l10n.reset,
+                          style: const TextStyle(color: _kAction, fontSize: 13),
+                        ),
+                      ),
                   ],
                 ),
-                if (entries.isNotEmpty)
-                  GestureDetector(
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (_) => AlertDialog(
-                          backgroundColor: _kSurface,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            side: const BorderSide(color: _kBorder),
-                          ),
-                          title: Text(
-                            l10n.resetHistory,
-                            style: const TextStyle(color: _kText),
-                          ),
-                          content: Text(
-                            l10n.confirmResetHistory,
-                            style: const TextStyle(color: _kTextSub),
-                          ),
-                          actions: [
-                            TextButton(
-                              child: Text(l10n.cancel),
-                              onPressed: () => Navigator.pop(context),
-                            ),
-                            TextButton(
-                              style: TextButton.styleFrom(
-                                foregroundColor: const Color(0xFFF87171),
-                              ),
-                              child: Text(l10n.reset),
-                              onPressed: () {
-                                provider.clearHistory();
-                                Navigator.pop(context);
-                              },
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                    child: Text(
-                      l10n.reset,
-                      style: const TextStyle(
-                        color: Color(0xFFF87171),
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          const Divider(height: 1, color: _kBorder),
+              ),
+              const Divider(height: 1, color: _kBorder),
 
-          // List
-          Expanded(
-            child: entries.isEmpty
-                ? Center(
-                    child: Text(
-                      l10n.noHistory,
-                      style: const TextStyle(
-                        color: _kTextSub,
-                        fontSize: 15,
-                      ),
-                    ),
-                  )
-                : ListView.separated(
-                    controller: scrollController,
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                    itemCount: entries.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
-                      final e = entries[index];
-                      final color =
-                          _kWheelColors[index % _kWheelColors.length];
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: _kCard,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border(
-                            left: BorderSide(color: color, width: 4),
-                          ),
-                        ),
-                        child: ListTile(
-                          dense: true,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 2,
-                          ),
-                          leading: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: _kSurface,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: _kBorder),
-                            ),
-                            child: Center(
-                              child: Text(
-                                '${index + 1}',
-                                style: const TextStyle(
-                                  color: _kTextSub,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                          ),
-                          title: Text(
-                            e.key,
+              // List
+              Expanded(
+                child:
+                    entries.isEmpty
+                        ? Center(
+                          child: Text(
+                            l10n.noHistory,
                             style: const TextStyle(
-                              color: _kText,
-                              fontWeight: FontWeight.w600,
+                              color: _kTextSub,
                               fontSize: 15,
                             ),
                           ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.emoji_events,
-                                color: Color(0xFFFBBF24),
-                                size: 14,
+                        )
+                        : ListView.separated(
+                          controller: null,
+                          shrinkWrap: true,
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                          itemCount: entries.length,
+                          separatorBuilder:
+                              (_, __) => const SizedBox(height: 8),
+                          itemBuilder: (context, index) {
+                            final e = entries[index];
+                            final color =
+                                _kWheelColors[index % _kWheelColors.length];
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: _kCard,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: _kBorder),
                               ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${e.value}${l10n.times}',
-                                style: const TextStyle(
-                                  color: _kEmerald,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
+                              child: ListTile(
+                                dense: true,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 2,
+                                ),
+                                leading: Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    color: _kSurface,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: color, width: 2),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      '${index + 1}',
+                                      style: TextStyle(
+                                        color: color,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                title: Text(
+                                  e.key,
+                                  style: const TextStyle(
+                                    color: _kText,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.emoji_events,
+                                      color: _kSuccess,
+                                      size: 14,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${e.value}${l10n.times}',
+                                      style: const TextStyle(
+                                        color: _kSuccess,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
-                          ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 }
@@ -1353,88 +1502,91 @@ class _PresetSheetState extends State<_PresetSheet> {
     _nameController.clear();
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: _kSurface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: _kBorder),
-        ),
-        title: Text(
-          widget.l10n.savePreset,
-          style: const TextStyle(color: _kText),
-        ),
-        content: TextField(
-          controller: _nameController,
-          autofocus: true,
-          style: const TextStyle(color: _kText),
-          decoration: InputDecoration(
-            hintText: widget.l10n.presetNameHint,
+      builder:
+          (ctx) => AlertDialog(
+            backgroundColor: _kCard,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: const BorderSide(color: _kBorder),
+            ),
+            title: Text(
+              widget.l10n.savePreset,
+              style: const TextStyle(color: _kText),
+            ),
+            content: TextField(
+              controller: _nameController,
+              autofocus: true,
+              style: const TextStyle(color: _kText),
+              decoration: InputDecoration(hintText: widget.l10n.presetNameHint),
+              onSubmitted: (_) => _doSave(ctx, provider),
+            ),
+            actions: [
+              TextButton(
+                child: Text(widget.l10n.cancel),
+                onPressed: () => Navigator.pop(ctx),
+              ),
+              TextButton(
+                child: Text(widget.l10n.save),
+                onPressed: () => _doSave(ctx, provider),
+              ),
+            ],
           ),
-          onSubmitted: (_) => _doSave(ctx, provider),
-        ),
-        actions: [
-          TextButton(
-            child: Text(widget.l10n.cancel),
-            onPressed: () => Navigator.pop(ctx),
-          ),
-          TextButton(
-            child: Text(widget.l10n.save),
-            onPressed: () => _doSave(ctx, provider),
-          ),
-        ],
-      ),
     );
   }
 
-  void _doSave(BuildContext ctx, PlayerProvider provider) {
+  Future<void> _doSave(BuildContext ctx, PlayerProvider provider) async {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(widget.l10n.presetNameEmpty)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(widget.l10n.presetNameEmpty)));
       return;
     }
-    provider.savePreset(name);
+    await provider.savePreset(name);
+    if (!mounted || !ctx.mounted) return;
     Navigator.pop(ctx);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(widget.l10n.presetSaved)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(widget.l10n.presetSaved)));
   }
 
-  void _showDeleteDialog(BuildContext context, PlayerProvider provider, int index) {
+  void _showDeleteDialog(
+    BuildContext context,
+    PlayerProvider provider,
+    int index,
+  ) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: _kSurface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: _kBorder),
-        ),
-        title: Text(
-          widget.l10n.deletePreset,
-          style: const TextStyle(color: _kText),
-        ),
-        content: Text(
-          widget.l10n.confirmDeletePreset,
-          style: const TextStyle(color: _kTextSub),
-        ),
-        actions: [
-          TextButton(
-            child: Text(widget.l10n.cancel),
-            onPressed: () => Navigator.pop(ctx),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(
-              foregroundColor: const Color(0xFFF87171),
+      builder:
+          (ctx) => AlertDialog(
+            backgroundColor: _kCard,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: const BorderSide(color: _kBorder),
             ),
-            child: Text(widget.l10n.deletePreset),
-            onPressed: () {
-              provider.deletePreset(index);
-              Navigator.pop(ctx);
-            },
+            title: Text(
+              widget.l10n.deletePreset,
+              style: const TextStyle(color: _kText),
+            ),
+            content: Text(
+              widget.l10n.confirmDeletePreset,
+              style: const TextStyle(color: _kTextSub),
+            ),
+            actions: [
+              TextButton(
+                child: Text(widget.l10n.cancel),
+                onPressed: () => Navigator.pop(ctx),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(foregroundColor: _kAction),
+                child: Text(widget.l10n.deletePreset),
+                onPressed: () {
+                  provider.deletePreset(index);
+                  Navigator.pop(ctx);
+                },
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -1449,185 +1601,213 @@ class _PresetSheetState extends State<_PresetSheet> {
       initialChildSize: 0.55,
       minChildSize: 0.35,
       maxChildSize: 0.85,
-      builder: (_, scrollController) => Column(
-        children: [
-          // Handle
-          Container(
-            margin: const EdgeInsets.only(top: 12, bottom: 8),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: _kBorder,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-
-          // Title row
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.bookmark_outline, color: _kBlue, size: 20),
-                    const SizedBox(width: 8),
-                    _GradientText(
-                      widget.l10n.presets,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
+      builder:
+          (_, scrollController) => Column(
+            children: [
+              // Handle
+              Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: _kBorder,
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                if (hasPlayers)
-                  GestureDetector(
-                    onTap: () => _showSaveDialog(context, provider),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _kBlue.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: _kBlue.withOpacity(0.4)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.save_outlined, size: 13, color: _kBlue),
-                          const SizedBox(width: 5),
-                          Text(
-                            widget.l10n.savePreset,
-                            style: const TextStyle(
-                              color: _kBlue,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          const Divider(height: 1, color: _kBorder),
+              ),
 
-          // List
-          Expanded(
-            child: presets.isEmpty
-                ? Center(
-                    child: Text(
-                      widget.l10n.noPresets,
-                      style: const TextStyle(
-                        color: _kTextSub,
-                        fontSize: 15,
-                      ),
-                    ),
-                  )
-                : ListView.separated(
-                    controller: scrollController,
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                    itemCount: presets.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
-                      final preset = presets[index];
-                      final color = _kWheelColors[index % _kWheelColors.length];
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: _kCard,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border(
-                            left: BorderSide(color: color, width: 4),
+              // Title row
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 4,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.bookmark_outline,
+                          color: _kAction,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        _GradientText(
+                          widget.l10n.presets,
+                          style: const TextStyle(
+                            fontSize: 21,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 4,
+                      ],
+                    ),
+                    if (hasPlayers)
+                      GestureDetector(
+                        onTap: () => _showSaveDialog(context, provider),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 8,
                           ),
-                          title: Text(
-                            preset.name,
-                            style: const TextStyle(
-                              color: _kText,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15,
-                            ),
+                          decoration: BoxDecoration(
+                            color: _kAction.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: _kAction),
                           ),
-                          subtitle: Text(
-                            preset.players.take(3).join(', ') +
-                                (preset.players.length > 3 ? '  …' : ''),
-                            style: const TextStyle(
-                              color: _kTextSub,
-                              fontSize: 12,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          trailing: Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              const Icon(
+                                Icons.save_outlined,
+                                size: 13,
+                                color: _kAction,
+                              ),
+                              const SizedBox(width: 5),
                               Text(
-                                widget.l10n.presetPersonCount(preset.players.length),
+                                widget.l10n.savePreset,
                                 style: const TextStyle(
-                                  color: _kTextSub,
+                                  color: _kAction,
                                   fontSize: 12,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              GestureDetector(
-                                onTap: () {
-                                  provider.loadPreset(index);
-                                  Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(widget.l10n.presetLoaded),
-                                    ),
-                                  );
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 5,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: _kEmerald.withOpacity(0.15),
-                                    borderRadius: BorderRadius.circular(7),
-                                    border: Border.all(
-                                      color: _kEmerald.withOpacity(0.4),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    widget.l10n.loadPreset,
-                                    style: const TextStyle(
-                                      color: _kEmerald,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              GestureDetector(
-                                onTap: () => _showDeleteDialog(context, provider, index),
-                                child: const Icon(
-                                  Icons.delete_outline,
-                                  color: Color(0xFFF87171),
-                                  size: 18,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1, color: _kBorder),
+
+              // List
+              Expanded(
+                child:
+                    presets.isEmpty
+                        ? Center(
+                          child: Text(
+                            widget.l10n.noPresets,
+                            style: const TextStyle(
+                              color: _kTextSub,
+                              fontSize: 15,
+                            ),
+                          ),
+                        )
+                        : ListView.separated(
+                          controller: scrollController,
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                          itemCount: presets.length,
+                          separatorBuilder:
+                              (_, __) => const SizedBox(height: 8),
+                          itemBuilder: (context, index) {
+                            final preset = presets[index];
+                            final color =
+                                _kWheelColors[index % _kWheelColors.length];
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: _kCard,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border(
+                                  left: BorderSide(color: color, width: 4),
+                                ),
+                              ),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 4,
+                                ),
+                                title: Text(
+                                  preset.name,
+                                  style: const TextStyle(
+                                    color: _kText,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  preset.players.take(3).join(', ') +
+                                      (preset.players.length > 3 ? '  …' : ''),
+                                  style: const TextStyle(
+                                    color: _kTextSub,
+                                    fontSize: 12,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      widget.l10n.presetPersonCount(
+                                        preset.players.length,
+                                      ),
+                                      style: const TextStyle(
+                                        color: _kTextSub,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    GestureDetector(
+                                      onTap: () {
+                                        provider.loadPreset(index);
+                                        Navigator.pop(context);
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              widget.l10n.presetLoaded,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 5,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: _kSuccess.withOpacity(0.15),
+                                          borderRadius: BorderRadius.circular(
+                                            7,
+                                          ),
+                                          border: Border.all(
+                                            color: _kSuccess.withOpacity(0.4),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          widget.l10n.loadPreset,
+                                          style: const TextStyle(
+                                            color: _kSuccess,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    GestureDetector(
+                                      onTap:
+                                          () => _showDeleteDialog(
+                                            context,
+                                            provider,
+                                            index,
+                                          ),
+                                      child: const Icon(
+                                        Icons.delete_outline,
+                                        color: _kAction,
+                                        size: 18,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 }
@@ -1641,12 +1821,7 @@ class _GradientText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ShaderMask(
-      shaderCallback: (bounds) => const LinearGradient(
-        colors: [_kBlue, _kEmerald],
-      ).createShader(bounds),
-      child: Text(text, style: style.copyWith(color: Colors.white)),
-    );
+    return Text(text, style: style.copyWith(color: style.color ?? _kText));
   }
 }
 
@@ -1661,18 +1836,15 @@ class _StepperButton extends StatelessWidget {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-        width: 32,
-        height: 32,
+        width: 44,
+        height: 44,
+        alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: enabled ? _kCard : _kCard.withOpacity(0.4),
+          color: enabled ? _kCard : _kDisabled,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: _kBorder),
         ),
-        child: Icon(
-          icon,
-          size: 16,
-          color: enabled ? _kTextSub : _kBorder,
-        ),
+        child: Icon(icon, size: 16, color: enabled ? _kTextSub : _kBorder),
       ),
     );
   }
@@ -1682,7 +1854,11 @@ class _GradientSpinButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
   final FocusNode? focusNode;
-  const _GradientSpinButton({required this.label, required this.onPressed, this.focusNode});
+  const _GradientSpinButton({
+    required this.label,
+    required this.onPressed,
+    this.focusNode,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1691,25 +1867,19 @@ class _GradientSpinButton extends StatelessWidget {
       child: GestureDetector(
         onTap: onPressed,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 56, vertical: 15),
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          alignment: Alignment.center,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(colors: [_kBlue, _kEmerald]),
-            borderRadius: BorderRadius.circular(50),
-            boxShadow: [
-              BoxShadow(
-                color: _kBlue.withOpacity(0.4),
-                blurRadius: 12,
-                spreadRadius: 2,
-              ),
-            ],
+            color: _kAction,
+            borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
             label,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),
@@ -1732,10 +1902,10 @@ class _WinnerDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: _kSurface,
+      backgroundColor: _kCard,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: _kEmerald, width: 2),
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: _kBorder),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -1746,15 +1916,8 @@ class _WinnerDialog extends StatelessWidget {
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                color: _kEmerald,
+                color: _kSuccess,
                 shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: _kEmerald.withOpacity(0.5),
-                    blurRadius: 14,
-                    spreadRadius: 2,
-                  ),
-                ],
               ),
               child: const Icon(
                 Icons.emoji_events,
@@ -1782,25 +1945,42 @@ class _WinnerDialog extends StatelessWidget {
                 separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (_, i) {
                   final color = _kWheelColors[i % _kWheelColors.length];
+                  final onColor =
+                      _kWheelTextColors[i % _kWheelTextColors.length];
                   return Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 12,
                     ),
                     decoration: BoxDecoration(
-                      color: _kCard,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border(
-                        left: BorderSide(color: color, width: 6),
-                      ),
+                      color: _kSurface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: _kBorder),
                     ),
                     child: Row(
                       children: [
-                        Text(
-                          '#${i + 1}',
-                          style: const TextStyle(
-                            color: _kTextSub,
-                            fontSize: 13,
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: color,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: color.withOpacity(0.4),
+                                blurRadius: 8,
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Text(
+                              '${i + 1}',
+                              style: TextStyle(
+                                color: onColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -1809,8 +1989,8 @@ class _WinnerDialog extends StatelessWidget {
                             winners[i].name,
                             style: const TextStyle(
                               color: _kText,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 21,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
@@ -1830,7 +2010,7 @@ class _WinnerDialog extends StatelessWidget {
                       foregroundColor: _kText,
                       side: const BorderSide(color: _kBorder),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 13),
                     ),
@@ -1842,10 +2022,10 @@ class _WinnerDialog extends StatelessWidget {
                   child: ElevatedButton.icon(
                     onPressed: onSpinAgain,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _kEmerald,
+                      backgroundColor: _kAction,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 13),
                     ),
