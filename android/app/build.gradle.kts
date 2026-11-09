@@ -55,8 +55,9 @@ android {
 
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
-            isShrinkResources = false
+            // Flutter's Gradle plugin supplies the optimized Android and Flutter keep rules.
+            isMinifyEnabled = true
+            isShrinkResources = true
             signingConfig = signingConfigs.getByName("release")
         }
     }
