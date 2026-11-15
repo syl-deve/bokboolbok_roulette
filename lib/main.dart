@@ -12,6 +12,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:bokboolbok_roulette/l10n/app_localizations.dart';
 import 'iap_service.dart';
+import 'review_prompter.dart';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const Color _kBg = Color(0xFFFFFFFF);
@@ -557,10 +558,12 @@ class _HomeScreenState extends State<HomeScreen> {
               _resetGame();
               _spinButtonFocusNode.requestFocus();
               _scrollToBottom();
+              ReviewPrompter.onResult(canPrompt: true);
             },
             onSpinAgain: () {
               Navigator.pop(ctx);
               _resetGame();
+              ReviewPrompter.onResult(canPrompt: false);
               FocusScope.of(context).unfocus();
               Future.delayed(const Duration(milliseconds: 100), () {
                 if (mounted) _startSpinning(players);
