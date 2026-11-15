@@ -11,7 +11,12 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:bokboolbok_roulette/l10n/app_localizations.dart';
+import 'package:firebase_core/firebase_core.dart';
+
+import 'app_analytics.dart';
+import 'firebase_options.dart';
 import 'iap_service.dart';
+import 'result_share.dart';
 import 'review_prompter.dart';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
@@ -64,6 +69,15 @@ const List<Color> _kWheelTextColors = [
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(_kLightSystemUiStyle);
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    AppAnalytics.enabled = true;
+  } catch (error) {
+    // The app works without analytics; never block startup on it.
+    debugPrint('Firebase init failed: $error');
+  }
   MobileAds.instance.initialize();
   RequestConfiguration configuration = RequestConfiguration(
     testDeviceIds: ['D86D9B1F092E7C8CC61591C0B2B19CFE'],
@@ -372,6 +386,7 @@ class PlayerProvider with ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('history');
     notifyListeners();
+    AppAnalytics.historyCleared();
   }
 
   // ── Presets ──────────────────────────────────────────────────────────────────
@@ -402,6 +417,7 @@ class PlayerProvider with ChangeNotifier {
     _presets.add(Preset(name: presetName, players: names));
     await _savePresets();
     notifyListeners();
+    AppAnalytics.presetSaved(participants: names.length);
   }
 
   Future<void> deletePreset(int index) async {
@@ -416,6 +432,7 @@ class PlayerProvider with ChangeNotifier {
     _players.addAll(preset.players.map((e) => Player(e)));
     _saveToPrefs();
     notifyListeners();
+    AppAnalytics.presetLoaded(participants: preset.players.length);
   }
 }
 
@@ -496,8 +513,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ── Roulette logic ──────────────────────────────────────────────────────────
-  void _startSpinning(List<Player> p) {
+  void _startSpinning(List<Player> p, {bool again = false}) {
     if (_isSpinning || p.length < 2) return;
+    AppAnalytics.spinStart(
+      participants: p.length,
+      winners: spinCount,
+      again: again,
+    );
     setState(() {
       _isSpinning = true;
       players = p;
@@ -546,6 +568,10 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showWinnerDialog() {
     if (!mounted) return;
     final winners = confirmedIndexes.map((i) => players[i]).toList();
+    AppAnalytics.resultShown(
+      participants: players.length,
+      winners: winners.length,
+    );
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -553,6 +579,7 @@ class _HomeScreenState extends State<HomeScreen> {
       builder:
           (ctx) => _WinnerDialog(
             winners: winners,
+            participantCount: players.length,
             onClose: () {
               Navigator.pop(ctx);
               _resetGame();
@@ -566,7 +593,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ReviewPrompter.onResult(canPrompt: false);
               FocusScope.of(context).unfocus();
               Future.delayed(const Duration(milliseconds: 100), () {
-                if (mounted) _startSpinning(players);
+                if (mounted) _startSpinning(players, again: true);
               });
             },
           ),
@@ -646,13 +673,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 IconButton(
                   icon: const Icon(Icons.restore, color: _kAction, size: 20),
                   tooltip: l10n.restorePurchase,
-                  onPressed: () => _iapService.restorePurchases(),
+                  onPressed: () {
+                    AppAnalytics.restoreTapped();
+                    _iapService.restorePurchases();
+                  },
                 ),
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.only(right: 12),
                     child: GestureDetector(
-                      onTap: () => _iapService.buyNonConsumable(),
+                      onTap: () {
+                        AppAnalytics.removeAdsTapped();
+                        _iapService.buyNonConsumable();
+                      },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,
@@ -1920,16 +1953,59 @@ class _GradientSpinButton extends StatelessWidget {
   }
 }
 
-class _WinnerDialog extends StatelessWidget {
+class _WinnerDialog extends StatefulWidget {
   final List<Player> winners;
+  final int participantCount;
   final VoidCallback onClose;
   final VoidCallback onSpinAgain;
 
   const _WinnerDialog({
     required this.winners,
+    required this.participantCount,
     required this.onClose,
     required this.onSpinAgain,
   });
+
+  @override
+  State<_WinnerDialog> createState() => _WinnerDialogState();
+}
+
+class _WinnerDialogState extends State<_WinnerDialog> {
+  final GlobalKey _shareKey = GlobalKey();
+  bool _sharing = false;
+
+  List<Player> get winners => widget.winners;
+  VoidCallback get onClose => widget.onClose;
+  VoidCallback get onSpinAgain => widget.onSpinAgain;
+
+  Future<void> _share() async {
+    if (_sharing) return;
+    final l10n = AppLocalizations.of(context)!;
+    final names = winners.map((w) => w.name).toList();
+    final message = [
+      l10n.shareMessage(widget.participantCount),
+      for (var i = 0; i < names.length; i++)
+        names.length > 1 ? '🏆 ${i + 1}. ${names[i]}' : '🏆 ${names[i]}',
+      '',
+      l10n.shareInvite,
+    ].join('\n');
+    final box = _shareKey.currentContext?.findRenderObject() as RenderBox?;
+    final origin =
+        box == null ? null : box.localToGlobal(Offset.zero) & box.size;
+    setState(() => _sharing = true);
+    final ok = await shareResultText(
+      message,
+      winners: names.length,
+      origin: origin,
+    );
+    if (!mounted) return;
+    setState(() => _sharing = false);
+    if (!ok) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.shareFailed)));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -2032,7 +2108,32 @@ class _WinnerDialog extends StatelessWidget {
                 },
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
+            TextButton.icon(
+              key: _shareKey,
+              onPressed: _sharing ? null : _share,
+              // Utility pill (DESIGN.md): grey surface, ink text, 20px radius.
+              style: TextButton.styleFrom(
+                backgroundColor: _kSurface,
+                foregroundColor: _kText,
+                disabledForegroundColor: _kDisabled,
+                minimumSize: const Size(0, 32),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              icon: const Icon(Icons.ios_share, size: 16),
+              label: Text(AppLocalizations.of(context)!.shareResult),
+            ),
+            const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(

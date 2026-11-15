@@ -130,4 +130,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get proVersion => 'PRO版本';
+
+  @override
+  String get shareResult => '分享结果';
+
+  @override
+  String shareMessage(int total) {
+    return '轮盘抽签结果（共$total人）';
+  }
+
+  @override
+  String get shareInvite => '自己也来转一转：';
+
+  @override
+  String get shareFailed => '分享失败，请稍后再试。';
 }

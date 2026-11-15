@@ -130,4 +130,18 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get proVersion => 'PROバージョン';
+
+  @override
+  String get shareResult => '結果をシェア';
+
+  @override
+  String shareMessage(int total) {
+    return 'ルーレット抽選結果（$total人中）';
+  }
+
+  @override
+  String get shareInvite => '自分でも回してみる:';
+
+  @override
+  String get shareFailed => 'シェアできませんでした。しばらくしてからもう一度お試しください。';
 }

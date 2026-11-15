@@ -130,4 +130,18 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get proVersion => 'PRO 버전';
+
+  @override
+  String get shareResult => '결과 공유';
+
+  @override
+  String shareMessage(int total) {
+    return '복불복룰렛 추첨 결과 ($total명 중)';
+  }
+
+  @override
+  String get shareInvite => '직접 돌려보기:';
+
+  @override
+  String get shareFailed => '공유하지 못했어요. 잠시 후 다시 시도해 주세요.';
 }

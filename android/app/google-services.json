@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "37380789462",
+    "project_id": "bokboolbok-roulette",
+    "storage_bucket": "bokboolbok-roulette.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:37380789462:android:3a55ce4a987d01f07da577",
+        "android_client_info": {
+          "package_name": "com.malee.bokboolbok_roulette"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_dufPAg9Hsf2H8b76uM1TlMx7qcGZQNY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

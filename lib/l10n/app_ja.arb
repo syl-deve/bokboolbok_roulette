@@ -21,14 +21,20 @@
   "findingWinner": "{total}人の中から{current}番目の当選者を選んでいます...",
   "@findingWinner": {
     "placeholders": {
-      "current": {"type": "int"},
-      "total": {"type": "int"}
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "selectingWinners": "順次{count}人の当選者を選定します",
   "@selectingWinners": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "winnerTitle": "当選！",
@@ -49,10 +55,16 @@
   "presetPersonCount": "{count}人",
   "@presetPersonCount": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "removeAds": "広告を削除",
   "restorePurchase": "購入を復원",
-  "proVersion": "PROバージョン"
+  "proVersion": "PROバージョン",
+  "shareResult": "結果をシェア",
+  "shareMessage": "ルーレット抽選結果（{total}人中）",
+  "shareInvite": "自分でも回してみる:",
+  "shareFailed": "シェアできませんでした。しばらくしてからもう一度お試しください。"
 }

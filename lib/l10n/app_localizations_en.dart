@@ -131,4 +131,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get proVersion => 'PRO Version';
+
+  @override
+  String get shareResult => 'Share result';
+
+  @override
+  String shareMessage(int total) {
+    return 'Roulette result (picked from $total)';
+  }
+
+  @override
+  String get shareInvite => 'Try it yourself:';
+
+  @override
+  String get shareFailed => 'Couldn\'t share. Please try again in a moment.';
 }

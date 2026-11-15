@@ -21,14 +21,20 @@
   "findingWinner": "正在从 {total} 人中选取第 {current} 位中奖者...",
   "@findingWinner": {
     "placeholders": {
-      "current": {"type": "int"},
-      "total": {"type": "int"}
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "selectingWinners": "按顺序选取 {count} 位中奖者",
   "@selectingWinners": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "winnerTitle": "中奖！",
@@ -49,10 +55,16 @@
   "presetPersonCount": "{count}人",
   "@presetPersonCount": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "removeAds": "移除广告",
   "restorePurchase": "恢复购买",
-  "proVersion": "PRO版本"
+  "proVersion": "PRO版本",
+  "shareResult": "分享结果",
+  "shareMessage": "轮盘抽签结果（共{total}人）",
+  "shareInvite": "自己也来转一转：",
+  "shareFailed": "分享失败，请稍后再试。"
 }

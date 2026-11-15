@@ -21,14 +21,20 @@
   "findingWinner": "Finding winner {current} of {total}...",
   "@findingWinner": {
     "placeholders": {
-      "current": {"type": "int"},
-      "total": {"type": "int"}
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "selectingWinners": "Selecting {count} winner(s) sequentially",
   "@selectingWinners": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "winnerTitle": "Winner!",
@@ -49,10 +55,23 @@
   "presetPersonCount": "{count} person(s)",
   "@presetPersonCount": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "removeAds": "Remove Ads",
   "restorePurchase": "Restore",
-  "proVersion": "PRO Version"
+  "proVersion": "PRO Version",
+  "shareResult": "Share result",
+  "shareMessage": "Roulette result (picked from {total})",
+  "@shareMessage": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "shareInvite": "Try it yourself:",
+  "shareFailed": "Couldn't share. Please try again in a moment."
 }

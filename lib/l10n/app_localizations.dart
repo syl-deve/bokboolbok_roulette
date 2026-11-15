@@ -335,6 +335,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'PRO Version'**
   String get proVersion;
+
+  /// No description provided for @shareResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Share result'**
+  String get shareResult;
+
+  /// No description provided for @shareMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Roulette result (picked from {total})'**
+  String shareMessage(int total);
+
+  /// No description provided for @shareInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'Try it yourself:'**
+  String get shareInvite;
+
+  /// No description provided for @shareFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t share. Please try again in a moment.'**
+  String get shareFailed;
 }
 
 class _AppLocalizationsDelegate
