@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -363,14 +364,26 @@ class PlayerProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  String _encodeHistory() =>
-      _history.entries.map((e) => '${e.key}:${e.value}').join('|');
+  // Stored as a JSON object so names may contain any character.
+  String _encodeHistory() => jsonEncode(_history);
 
   Map<String, int> _decodeHistory(String encoded) {
+    if (encoded.startsWith('{')) {
+      try {
+        final decoded = jsonDecode(encoded) as Map<String, dynamic>;
+        return decoded.map((k, v) => MapEntry(k, (v as num).toInt()));
+      } catch (_) {
+        // Fall through to the legacy format.
+      }
+    }
+    // Legacy format (<= 1.0.8): "name:count|name:count". The count is after
+    // the last ':', so names that contain ':' are still recovered.
     final Map<String, int> map = {};
     for (final pair in encoded.split('|')) {
-      final parts = pair.split(':');
-      if (parts.length == 2) map[parts[0]] = int.tryParse(parts[1]) ?? 0;
+      final sep = pair.lastIndexOf(':');
+      if (sep <= 0) continue;
+      final count = int.tryParse(pair.substring(sep + 1));
+      if (count != null) map[pair.substring(0, sep)] = count;
     }
     return map;
   }
