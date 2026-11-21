@@ -1,10 +1,10 @@
 {
   "@@locale": "ko",
-  "appTitle": "럭키 룰렛",
+  "appTitle": "복불복룰렛",
   "participants": "참가자",
   "roulette": "룰렛",
   "history": "히스토리",
-  "enterParticipantName": "참가자 이름 입력",
+  "enterParticipantName": "이름 입력 (쉼표로 여러 명 추가)",
   "exampleName": "예: 홍길동",
   "noParticipants": "참가자를 추가해주세요!",
   "winner": "당첨자 수",
@@ -84,5 +84,16 @@
   "teamResultTitle": "팀 나누기 결과",
   "teamAgain": "다시 나누기",
   "shareLadderMessage": "복불복룰렛 사다리 결과 ({total}명)",
-  "shareTeamMessage": "복불복룰렛 팀 나누기 결과 ({total}명, {teams}팀)"
+  "shareTeamMessage": "복불복룰렛 팀 나누기 결과 ({total}명, {teams}팀)",
+  "editName": "이름 수정",
+  "nameTaken": "이미 목록에 있는 이름이에요.",
+  "proActivated": "PRO가 적용됐어요. 이제 광고가 보이지 않아요.",
+  "purchaseFailed": "구매를 완료하지 못했어요. 잠시 후 다시 시도해 주세요.",
+  "storeUnavailable": "Google Play에 연결할 수 없어요. 인터넷 연결을 확인해 주세요.",
+  "restoreChecking": "구매 내역을 확인하고 있어요.",
+  "addParticipant": "참가자 추가",
+  "removeParticipant": "참가자 삭제",
+  "decrease": "줄이기",
+  "increase": "늘리기",
+  "confirmClearAll": "참가자 {count}명을 모두 지울까요?"
 }

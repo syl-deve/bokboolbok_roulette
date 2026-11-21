@@ -1,10 +1,10 @@
 {
   "@@locale": "en",
-  "appTitle": "Luck Roulette",
+  "appTitle": "Random Roulette",
   "participants": "Participants",
   "roulette": "Roulette",
   "history": "History",
-  "enterParticipantName": "Enter participant name",
+  "enterParticipantName": "Name (use commas to add several)",
   "exampleName": "Ex: John Doe",
   "noParticipants": "Please add participants!",
   "winner": "No. of Winners",
@@ -112,6 +112,24 @@
         "type": "int"
       },
       "teams": {
+        "type": "int"
+      }
+    }
+  },
+  "editName": "Edit name",
+  "nameTaken": "That name is already in the list.",
+  "proActivated": "PRO is active. Ads are gone.",
+  "purchaseFailed": "Couldn't complete the purchase. Please try again in a moment.",
+  "storeUnavailable": "Can't reach Google Play. Check your internet connection.",
+  "restoreChecking": "Checking your purchases.",
+  "addParticipant": "Add participant",
+  "removeParticipant": "Remove participant",
+  "decrease": "Decrease",
+  "increase": "Increase",
+  "confirmClearAll": "Remove all {count} participants?",
+  "@confirmClearAll": {
+    "placeholders": {
+      "count": {
         "type": "int"
       }
     }

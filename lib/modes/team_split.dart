@@ -28,26 +28,25 @@ List<List<int>> splitIntoTeams(int count, int teams, Random random) {
 class TeamSplitPanel extends StatefulWidget {
   final List<String> names;
 
-  /// Runs [action] after the interstitial ad (or at once when ad-free).
-  final void Function(VoidCallback action) runWithAd;
-  final ValueChanged<bool> onBusyChanged;
+  /// Runs [next] after the result dialog closes: shows the interstitial
+  /// first (unless ad-free), the same rule as the roulette.
+  final void Function(VoidCallback next) afterResult;
 
   const TeamSplitPanel({
     super.key,
     required this.names,
-    required this.runWithAd,
-    required this.onBusyChanged,
+    required this.afterResult,
   });
 
   @override
-  State<TeamSplitPanel> createState() => _TeamSplitPanelState();
+  State<TeamSplitPanel> createState() => TeamSplitPanelState();
 }
 
-class _TeamSplitPanelState extends State<TeamSplitPanel> {
+/// Public so the home screen's bottom action bar can call [split].
+class TeamSplitPanelState extends State<TeamSplitPanel> {
   final Random _random = Random();
   int _teamCount = 2;
   List<List<int>>? _result;
-  bool _busy = false;
 
   int get _maxTeams => max(2, widget.names.length);
 
@@ -64,25 +63,16 @@ class _TeamSplitPanelState extends State<TeamSplitPanel> {
       a.length == b.length &&
       List.generate(a.length, (i) => a[i] == b[i]).every((x) => x);
 
-  void _setBusy(bool value) {
-    setState(() => _busy = value);
-    widget.onBusyChanged(value);
-  }
-
-  void _split() {
+  /// Splits the current participants. Called from the bottom action bar.
+  void split() {
     final n = widget.names.length;
-    if (_busy || n < 2) return;
+    if (n < 2) return;
     final teams = _teamCount.clamp(2, n);
-    _setBusy(true);
-    widget.runWithAd(() {
-      if (!mounted) return;
-      final result = splitIntoTeams(n, teams, _random);
-      AppAnalytics.teamSplit(participants: n, teams: teams);
-      HapticFeedback.mediumImpact();
-      setState(() => _result = result);
-      _setBusy(false);
-      _showResult(result);
-    });
+    final result = splitIntoTeams(n, teams, _random);
+    AppAnalytics.teamSplit(participants: n, teams: teams);
+    HapticFeedback.mediumImpact();
+    setState(() => _result = result);
+    _showResult(result);
   }
 
   String _shareMessage(AppLocalizations l10n, List<List<int>> result) {
@@ -110,12 +100,14 @@ class _TeamSplitPanelState extends State<TeamSplitPanel> {
             againLabel: l10n.teamAgain,
             onClose: () {
               Navigator.pop(ctx);
-              ReviewPrompter.onResult(canPrompt: true);
+              widget.afterResult(
+                () => ReviewPrompter.onResult(canPrompt: true),
+              );
             },
             onAgain: () {
               Navigator.pop(ctx);
               ReviewPrompter.onResult(canPrompt: false);
-              Future.delayed(const Duration(milliseconds: 100), _split);
+              widget.afterResult(split);
             },
           ),
     );
@@ -134,12 +126,14 @@ class _TeamSplitPanelState extends State<TeamSplitPanel> {
           ModeStepper(
             label: l10n.teamCount,
             value: teams,
+            decreaseLabel: l10n.decrease,
+            increaseLabel: l10n.increase,
             onMinus:
-                _busy || teams <= 2
+                teams <= 2
                     ? null
                     : () => setState(() => _teamCount = teams - 1),
             onPlus:
-                _busy || n < 2 || teams >= n
+                n < 2 || teams >= n
                     ? null
                     : () => setState(() => _teamCount = teams + 1),
           ),
@@ -148,15 +142,8 @@ class _TeamSplitPanelState extends State<TeamSplitPanel> {
             _TeamCards(names: widget.names, result: _result!),
             const SizedBox(height: 12),
           ],
-          SizedBox(
-            height: 48,
-            child: ElevatedButton(
-              onPressed: _busy || n < 2 ? null : _split,
-              child: Text(l10n.teamSplitButton),
-            ),
-          ),
+          // The "split" button lives in the home screen's bottom bar.
           if (n < 2) ...[
-            const SizedBox(height: 8),
             Text(
               l10n.noParticipants,
               textAlign: TextAlign.center,
@@ -267,6 +254,8 @@ class _NameChip extends StatelessWidget {
 class ModeStepper extends StatelessWidget {
   final String label;
   final int value;
+  final String decreaseLabel;
+  final String increaseLabel;
   final VoidCallback? onMinus;
   final VoidCallback? onPlus;
 
@@ -274,6 +263,8 @@ class ModeStepper extends StatelessWidget {
     super.key,
     required this.label,
     required this.value,
+    required this.decreaseLabel,
+    required this.increaseLabel,
     required this.onMinus,
     required this.onPlus,
   });
@@ -300,7 +291,11 @@ class ModeStepper extends StatelessWidget {
           ),
           Row(
             children: [
-              _RoundIconButton(icon: Icons.remove, onPressed: onMinus),
+              _RoundIconButton(
+                icon: Icons.remove,
+                tooltip: decreaseLabel,
+                onPressed: onMinus,
+              ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
@@ -312,7 +307,11 @@ class ModeStepper extends StatelessWidget {
                   ),
                 ),
               ),
-              _RoundIconButton(icon: Icons.add, onPressed: onPlus),
+              _RoundIconButton(
+                icon: Icons.add,
+                tooltip: increaseLabel,
+                onPressed: onPlus,
+              ),
             ],
           ),
         ],
@@ -323,26 +322,30 @@ class ModeStepper extends StatelessWidget {
 
 class _RoundIconButton extends StatelessWidget {
   final IconData icon;
+  final String tooltip;
   final VoidCallback? onPressed;
 
-  const _RoundIconButton({required this.icon, required this.onPressed});
+  const _RoundIconButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
-    // Same look as the roulette winner-count stepper button.
-    final enabled = onPressed != null;
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: 44,
-        height: 44,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: enabled ? kCard : kDisabled,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: kBorder),
-        ),
-        child: Icon(icon, size: 16, color: enabled ? kTextSub : kBorder),
+    // Material IconButton: 48dp target, ripple, focus and a TalkBack label.
+    return IconButton(
+      onPressed: onPressed,
+      tooltip: tooltip,
+      icon: Icon(icon, size: 16),
+      style: IconButton.styleFrom(
+        fixedSize: const Size(48, 48),
+        foregroundColor: kTextSub,
+        disabledForegroundColor: kBorder,
+        backgroundColor: kCard,
+        disabledBackgroundColor: kDisabled,
+        side: const BorderSide(color: kBorder),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }

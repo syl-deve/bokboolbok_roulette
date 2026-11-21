@@ -31,7 +31,7 @@ dart run flutter_launcher_icons    # after changing assets/icon/app_icon.png
 
 ```
 lib/
-├── main.dart                 # app setup + roulette + shared UI (~2,270 lines)
+├── main.dart                 # app setup + roulette + shared UI (~2,400 lines)
 ├── modes/
 │   ├── ladder.dart           # ladder logic (generateRungs / ladderPath / ladderMapping) + LadderPanel
 │   ├── team_split.dart       # splitIntoTeams + TeamSplitPanel + ModeStepper
@@ -45,7 +45,8 @@ lib/
 └── l10n/                     # ARB files (ko, en, ja, zh) + generated delegates
 test/
 ├── history_test.dart         # win-history storage format
-└── modes_test.dart           # ladder fairness/validity, team balance
+├── modes_test.dart           # ladder fairness/validity, team balance
+└── players_test.dart         # bulk add (commas/line breaks), rename rules
 ```
 
 ### Key classes in `lib/main.dart`
@@ -57,13 +58,17 @@ test/
 | `Player`, `Preset` | Data models |
 | `PlayerProvider` | `ChangeNotifier`: participants, presets, win history, ad-free flag, persistence |
 | `HomeScreen` / `_HomeScreenState` | Tabs, shared participant section, roulette wheel and spin logic; hosts `LadderPanel` and `TeamSplitPanel` |
+| `_ActionBar` | Pinned strip above the banner with the current tab's primary button (spin / start ladder / split teams) |
 | `_PresetSheet`, `_HistorySheet` | Bottom sheets |
 | `_WinnerDialog` | Roulette result dialog with "share result" |
 
 Rules that hold across modes:
 
-- Every mode starts through `_runWithAd` (interstitial first, same rule as the roulette).
-- While any mode runs (`_isSpinning || _modeBusy`), the participant section is locked with `IgnorePointer`. Panels report busy state through `onBusyChanged`.
+- The primary button of every tab lives in `_ActionBar`, so it is visible without scrolling. The ladder and team panels expose `start()` / `split()` through `GlobalKey<LadderPanelState>` / `GlobalKey<TeamSplitPanelState>`.
+- Runs start at once. The interstitial comes **after** the result: every result dialog's close and "again" go through `_afterResult` (passed to the panels as `afterResult`).
+- While any mode runs (`_isSpinning || _modeBusy`), the participant section is locked with `IgnorePointer`. The ladder reports its 2 s draw through `onBusyChanged`; a team split is instant.
+- Reduced motion (`MediaQuery.disableAnimations`): the wheel spin and ladder draw are instant and confetti is skipped (DESIGN.md §15).
+- Icon-only controls use Material `IconButton` with a `tooltip` (48dp target and a TalkBack label); don't go back to bare `GestureDetector`s.
 - Result dialogs call `ReviewPrompter.onResult(canPrompt: true)` on close and `canPrompt: false` on "again".
 - Win history is recorded for the roulette only.
 
@@ -96,7 +101,8 @@ ARB files in `lib/l10n/` (`ko`, `en`, `ja`, `zh`); `app_en.arb` is the template,
 
 ### Ads and purchases
 
-- Banner at the bottom; interstitial before each roulette/ladder/team run (frequency deliberately unchanged).
+- Banner at the bottom; interstitial once per roulette/ladder/team result, shown when the result dialog closes (moved from before the run in 1.1.1; frequency unchanged).
+- Purchase and restore problems reach the UI through `IAPService.onProblem` and show a localized snackbar; "restore purchase" sits in the app bar's overflow menu.
 - PRO (`remove_ads_pro`) hides all ads.
 - AdMob test device ID is hardcoded; production uses real ad unit IDs.
 

@@ -21,7 +21,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get history => '历史记录';
 
   @override
-  String get enterParticipantName => '输入参与者姓名';
+  String get enterParticipantName => '名字（用逗号可添加多人）';
 
   @override
   String get exampleName => '例：张三';
@@ -203,5 +203,40 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String shareTeamMessage(int total, int teams) {
     return '分组结果（共$total人，$teams组）';
+  }
+
+  @override
+  String get editName => '编辑名字';
+
+  @override
+  String get nameTaken => '列表中已有这个名字。';
+
+  @override
+  String get proActivated => 'PRO 已启用，广告已移除。';
+
+  @override
+  String get purchaseFailed => '未能完成购买，请稍后再试。';
+
+  @override
+  String get storeUnavailable => '无法连接 Google Play，请检查网络连接。';
+
+  @override
+  String get restoreChecking => '正在查询购买记录。';
+
+  @override
+  String get addParticipant => '添加参与者';
+
+  @override
+  String get removeParticipant => '删除参与者';
+
+  @override
+  String get decrease => '减少';
+
+  @override
+  String get increase => '增加';
+
+  @override
+  String confirmClearAll(int count) {
+    return '要删除全部 $count 名参与者吗？';
   }
 }

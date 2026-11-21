@@ -1,10 +1,10 @@
 {
   "@@locale": "ja",
-  "appTitle": "ラッキールーレット",
+  "appTitle": "ルーレット・あみだくじ",
   "participants": "参加者",
   "roulette": "ルーレット",
   "history": "履歴",
-  "enterParticipantName": "参加者名を入力",
+  "enterParticipantName": "名前（カンマで複数追加）",
   "exampleName": "例：田中太郎",
   "noParticipants": "参加者を追加してください！",
   "winner": "当選者数",
@@ -84,5 +84,16 @@
   "teamResultTitle": "チーム分けの結果",
   "teamAgain": "もう一度分ける",
   "shareLadderMessage": "あみだくじの結果（{total}人）",
-  "shareTeamMessage": "チーム分けの結果（{total}人・{teams}チーム）"
+  "shareTeamMessage": "チーム分けの結果（{total}人・{teams}チーム）",
+  "editName": "名前を編集",
+  "nameTaken": "その名前はすでにリストにあります。",
+  "proActivated": "PROが有効になりました。広告は表示されません。",
+  "purchaseFailed": "購入を完了できませんでした。しばらくしてからもう一度お試しください。",
+  "storeUnavailable": "Google Playに接続できません。インターネット接続を確認してください。",
+  "restoreChecking": "購入履歴を確認しています。",
+  "addParticipant": "参加者を追加",
+  "removeParticipant": "参加者を削除",
+  "decrease": "減らす",
+  "increase": "増やす",
+  "confirmClearAll": "参加者{count}人を全員削除しますか？"
 }

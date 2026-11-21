@@ -105,7 +105,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'Luck Roulette'**
+  /// **'Random Roulette'**
   String get appTitle;
 
   /// No description provided for @participants.
@@ -129,7 +129,7 @@ abstract class AppLocalizations {
   /// No description provided for @enterParticipantName.
   ///
   /// In en, this message translates to:
-  /// **'Enter participant name'**
+  /// **'Name (use commas to add several)'**
   String get enterParticipantName;
 
   /// No description provided for @exampleName.
@@ -467,6 +467,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Team split ({total} people, {teams} teams)'**
   String shareTeamMessage(int total, int teams);
+
+  /// No description provided for @editName.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit name'**
+  String get editName;
+
+  /// No description provided for @nameTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'That name is already in the list.'**
+  String get nameTaken;
+
+  /// No description provided for @proActivated.
+  ///
+  /// In en, this message translates to:
+  /// **'PRO is active. Ads are gone.'**
+  String get proActivated;
+
+  /// No description provided for @purchaseFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t complete the purchase. Please try again in a moment.'**
+  String get purchaseFailed;
+
+  /// No description provided for @storeUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t reach Google Play. Check your internet connection.'**
+  String get storeUnavailable;
+
+  /// No description provided for @restoreChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking your purchases.'**
+  String get restoreChecking;
+
+  /// No description provided for @addParticipant.
+  ///
+  /// In en, this message translates to:
+  /// **'Add participant'**
+  String get addParticipant;
+
+  /// No description provided for @removeParticipant.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove participant'**
+  String get removeParticipant;
+
+  /// No description provided for @decrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrease'**
+  String get decrease;
+
+  /// No description provided for @increase.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase'**
+  String get increase;
+
+  /// No description provided for @confirmClearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove all {count} participants?'**
+  String confirmClearAll(int count);
 }
 
 class _AppLocalizationsDelegate

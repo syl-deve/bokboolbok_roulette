@@ -9,7 +9,7 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
-  String get appTitle => '럭키 룰렛';
+  String get appTitle => '복불복룰렛';
 
   @override
   String get participants => '참가자';
@@ -21,7 +21,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get history => '히스토리';
 
   @override
-  String get enterParticipantName => '참가자 이름 입력';
+  String get enterParticipantName => '이름 입력 (쉼표로 여러 명 추가)';
 
   @override
   String get exampleName => '예: 홍길동';
@@ -203,5 +203,40 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String shareTeamMessage(int total, int teams) {
     return '복불복룰렛 팀 나누기 결과 ($total명, $teams팀)';
+  }
+
+  @override
+  String get editName => '이름 수정';
+
+  @override
+  String get nameTaken => '이미 목록에 있는 이름이에요.';
+
+  @override
+  String get proActivated => 'PRO가 적용됐어요. 이제 광고가 보이지 않아요.';
+
+  @override
+  String get purchaseFailed => '구매를 완료하지 못했어요. 잠시 후 다시 시도해 주세요.';
+
+  @override
+  String get storeUnavailable => 'Google Play에 연결할 수 없어요. 인터넷 연결을 확인해 주세요.';
+
+  @override
+  String get restoreChecking => '구매 내역을 확인하고 있어요.';
+
+  @override
+  String get addParticipant => '참가자 추가';
+
+  @override
+  String get removeParticipant => '참가자 삭제';
+
+  @override
+  String get decrease => '줄이기';
+
+  @override
+  String get increase => '늘리기';
+
+  @override
+  String confirmClearAll(int count) {
+    return '참가자 $count명을 모두 지울까요?';
   }
 }

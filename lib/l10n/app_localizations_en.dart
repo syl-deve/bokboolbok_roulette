@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'Luck Roulette';
+  String get appTitle => 'Random Roulette';
 
   @override
   String get participants => 'Participants';
@@ -21,7 +21,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get history => 'History';
 
   @override
-  String get enterParticipantName => 'Enter participant name';
+  String get enterParticipantName => 'Name (use commas to add several)';
 
   @override
   String get exampleName => 'Ex: John Doe';
@@ -204,5 +204,42 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String shareTeamMessage(int total, int teams) {
     return 'Team split ($total people, $teams teams)';
+  }
+
+  @override
+  String get editName => 'Edit name';
+
+  @override
+  String get nameTaken => 'That name is already in the list.';
+
+  @override
+  String get proActivated => 'PRO is active. Ads are gone.';
+
+  @override
+  String get purchaseFailed =>
+      'Couldn\'t complete the purchase. Please try again in a moment.';
+
+  @override
+  String get storeUnavailable =>
+      'Can\'t reach Google Play. Check your internet connection.';
+
+  @override
+  String get restoreChecking => 'Checking your purchases.';
+
+  @override
+  String get addParticipant => 'Add participant';
+
+  @override
+  String get removeParticipant => 'Remove participant';
+
+  @override
+  String get decrease => 'Decrease';
+
+  @override
+  String get increase => 'Increase';
+
+  @override
+  String confirmClearAll(int count) {
+    return 'Remove all $count participants?';
   }
 }

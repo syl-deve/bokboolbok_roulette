@@ -9,7 +9,7 @@ class AppLocalizationsJa extends AppLocalizations {
   AppLocalizationsJa([String locale = 'ja']) : super(locale);
 
   @override
-  String get appTitle => 'ラッキールーレット';
+  String get appTitle => 'ルーレット・あみだくじ';
 
   @override
   String get participants => '参加者';
@@ -21,7 +21,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get history => '履歴';
 
   @override
-  String get enterParticipantName => '参加者名を入力';
+  String get enterParticipantName => '名前（カンマで複数追加）';
 
   @override
   String get exampleName => '例：田中太郎';
@@ -203,5 +203,40 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String shareTeamMessage(int total, int teams) {
     return 'チーム分けの結果（$total人・$teamsチーム）';
+  }
+
+  @override
+  String get editName => '名前を編集';
+
+  @override
+  String get nameTaken => 'その名前はすでにリストにあります。';
+
+  @override
+  String get proActivated => 'PROが有効になりました。広告は表示されません。';
+
+  @override
+  String get purchaseFailed => '購入を完了できませんでした。しばらくしてからもう一度お試しください。';
+
+  @override
+  String get storeUnavailable => 'Google Playに接続できません。インターネット接続を確認してください。';
+
+  @override
+  String get restoreChecking => '購入履歴を確認しています。';
+
+  @override
+  String get addParticipant => '参加者を追加';
+
+  @override
+  String get removeParticipant => '参加者を削除';
+
+  @override
+  String get decrease => '減らす';
+
+  @override
+  String get increase => '増やす';
+
+  @override
+  String confirmClearAll(int count) {
+    return '参加者$count人を全員削除しますか？';
   }
 }

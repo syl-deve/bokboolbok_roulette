@@ -67,14 +67,8 @@ void main() async {
   MobileAds.instance.updateRequestConfiguration(configuration);
   AdHelper.loadInterstitialAd();
   final playerProvider = PlayerProvider();
-  final minimumSplashDuration = Future<void>.delayed(
-    const Duration(milliseconds: 1000),
-  );
   try {
-    await Future.wait<void>([
-      playerProvider.loadFromPrefs(),
-      minimumSplashDuration,
-    ]);
+    await playerProvider.loadFromPrefs();
   } catch (error) {
     debugPrint('Failed to load saved roulette data: $error');
   }
@@ -130,6 +124,8 @@ void main() async {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
+              disabledBackgroundColor: _kAction.withValues(alpha: 0.35),
+              disabledForegroundColor: Colors.white,
               minimumSize: const Size(0, 48),
               padding: const EdgeInsets.symmetric(horizontal: 24),
               textStyle: const TextStyle(
@@ -151,7 +147,7 @@ void main() async {
               borderSide: BorderSide(color: _kAction, width: 2),
             ),
             labelStyle: const TextStyle(color: _kTextSub),
-            hintStyle: const TextStyle(color: _kBorder),
+            hintStyle: const TextStyle(color: _kTextSub),
             prefixIconColor: _kTextSub,
             suffixIconColor: _kTextSub,
           ),
@@ -309,14 +305,42 @@ class PlayerProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void addPlayer(String name) {
-    final trimmed = name.trim();
-    if (trimmed.isNotEmpty &&
-        !_players.any((p) => p.name.toLowerCase() == trimmed.toLowerCase())) {
-      _players.add(Player(trimmed));
+  bool _nameTaken(String name, {int? except}) {
+    final lower = name.toLowerCase();
+    for (var i = 0; i < _players.length; i++) {
+      if (i != except && _players[i].name.toLowerCase() == lower) return true;
+    }
+    return false;
+  }
+
+  /// Adds every name in [input]. Names may be separated by commas
+  /// (`,` `，` `、`) or line breaks, so a pasted list adds everyone at once.
+  /// Empty and duplicate names (case-insensitive) are skipped.
+  /// Returns how many were added.
+  int addPlayers(String input) {
+    var added = 0;
+    for (final part in input.split(RegExp(r'[,，、\r\n]+'))) {
+      final name = part.trim();
+      if (name.isEmpty || _nameTaken(name)) continue;
+      _players.add(Player(name));
+      added++;
+    }
+    if (added > 0) {
       _saveToPrefs();
       notifyListeners();
     }
+    return added;
+  }
+
+  /// Renames the participant at [index]. Returns false (and changes
+  /// nothing) when the new name is empty or another participant has it.
+  bool renamePlayer(int index, String name) {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty || _nameTaken(trimmed, except: index)) return false;
+    _players[index] = Player(trimmed);
+    _saveToPrefs();
+    notifyListeners();
+    return true;
   }
 
   void removePlayer(int index) {
@@ -471,6 +495,8 @@ class _HomeScreenState extends State<HomeScreen>
   final AudioPlayer _spinPlayer = AudioPlayer();
   final AudioPlayer _winPlayer = AudioPlayer();
   late IAPService _iapService;
+  final _ladderKey = GlobalKey<LadderPanelState>();
+  final _teamKey = GlobalKey<TeamSplitPanelState>();
 
   @override
   void initState() {
@@ -489,11 +515,23 @@ class _HomeScreenState extends State<HomeScreen>
     _iapService.onPurchaseSuccess = (success) {
       if (success && mounted) {
         context.read<PlayerProvider>().setAdFree(true);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Pro 버전이 활성화되었습니다!')));
+        _showSnack(AppLocalizations.of(context)!.proActivated);
       }
     };
+    _iapService.onProblem = (problem) {
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
+      _showSnack(switch (problem) {
+        IapProblem.storeUnavailable => l10n.storeUnavailable,
+        IapProblem.purchaseFailed => l10n.purchaseFailed,
+      });
+    };
+  }
+
+  void _showSnack(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -536,25 +574,21 @@ class _HomeScreenState extends State<HomeScreen>
       selectedIndexes.clear();
       confirmedIndexes.clear();
     });
-    final isAdFree = context.read<PlayerProvider>().isAdFree;
-    AdHelper.showInterstitialAd(() {
+    HapticFeedback.mediumImpact();
+    _spinPlayer.setReleaseMode(ReleaseMode.loop);
+    _spinPlayer.play(AssetSource('sounds/spin.wav'));
+    FocusScope.of(context).unfocus();
+    _scrollToBottom();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      HapticFeedback.mediumImpact();
-      _spinPlayer.setReleaseMode(ReleaseMode.loop);
-      _spinPlayer.play(AssetSource('sounds/spin.wav'));
-      FocusScope.of(context).unfocus();
-      _scrollToBottom();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        if (spinCount == 1) {
-          resultIndex = 0;
-          _selected.add(resultIndex!);
-          Future.delayed(const Duration(milliseconds: 300), _spinNext);
-        } else {
-          _spinNext();
-        }
-      });
-    }, isAdFree: isAdFree);
+      if (spinCount == 1) {
+        resultIndex = 0;
+        _selected.add(resultIndex!);
+        Future.delayed(const Duration(milliseconds: 300), _spinNext);
+      } else {
+        _spinNext();
+      }
+    });
   }
 
   void _spinNext() {
@@ -593,18 +627,16 @@ class _HomeScreenState extends State<HomeScreen>
             onClose: () {
               Navigator.pop(ctx);
               _resetGame();
-              _spinButtonFocusNode.requestFocus();
-              _scrollToBottom();
-              ReviewPrompter.onResult(canPrompt: true);
+              _afterResult(() {
+                _spinButtonFocusNode.requestFocus();
+                ReviewPrompter.onResult(canPrompt: true);
+              });
             },
             onSpinAgain: () {
               Navigator.pop(ctx);
               _resetGame();
               ReviewPrompter.onResult(canPrompt: false);
-              FocusScope.of(context).unfocus();
-              Future.delayed(const Duration(milliseconds: 100), () {
-                if (mounted) _startSpinning(players, again: true);
-              });
+              _afterResult(() => _startSpinning(players, again: true));
             },
           ),
     );
@@ -617,6 +649,92 @@ class _HomeScreenState extends State<HomeScreen>
       confirmedIndexes.clear();
       _isSpinning = false;
     });
+  }
+
+  // ── Edit a participant's name ───────────────────────────────────────────────
+  Future<void> _editPlayer(
+    PlayerProvider provider,
+    int index,
+    AppLocalizations l10n,
+  ) async {
+    final controller = TextEditingController(
+      text: provider.players[index].name,
+    );
+    String? error;
+    await showDialog<void>(
+      context: context,
+      builder:
+          (ctx) => StatefulBuilder(
+            builder: (ctx, setLocal) {
+              void submit() {
+                final name = controller.text.trim();
+                if (name.isEmpty) {
+                  setLocal(() => error = l10n.presetNameEmpty);
+                  return;
+                }
+                if (!provider.renamePlayer(index, name)) {
+                  setLocal(() => error = l10n.nameTaken);
+                  return;
+                }
+                Navigator.pop(ctx);
+              }
+
+              return AlertDialog(
+                title: Text(l10n.editName),
+                content: TextField(
+                  controller: controller,
+                  autofocus: true,
+                  maxLength: 30,
+                  decoration: InputDecoration(
+                    counterText: '',
+                    errorText: error,
+                  ),
+                  onChanged: (_) {
+                    if (error != null) setLocal(() => error = null);
+                  },
+                  onSubmitted: (_) => submit(),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: Text(l10n.cancel),
+                  ),
+                  TextButton(onPressed: submit, child: Text(l10n.save)),
+                ],
+              );
+            },
+          ),
+    );
+    controller.dispose();
+    if (mounted) FocusScope.of(context).unfocus();
+  }
+
+  // ── Clear all participants (asks first) ────────────────────────────────────
+  Future<void> _confirmClearAll(
+    PlayerProvider provider,
+    AppLocalizations l10n,
+  ) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            content: Text(l10n.confirmClearAll(provider.players.length)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(l10n.cancel),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(l10n.clearAll),
+              ),
+            ],
+          ),
+    );
+    if (ok != true || !mounted) return;
+    for (var i = provider.players.length - 1; i >= 0; i--) {
+      provider.removePlayer(i);
+    }
   }
 
   // ── Preset sheet ────────────────────────────────────────────────────────────
@@ -645,14 +763,68 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  /// Shows the interstitial (unless ad-free) and then runs [action], the same
-  /// rule the roulette spin uses.
-  void _runWithAd(VoidCallback action) {
+  /// Runs after a result dialog closes, in every mode: shows the
+  /// interstitial (unless ad-free), then runs [next]. The ad comes after the
+  /// result so it never sits between the tap and the reveal.
+  void _afterResult(VoidCallback next) {
     FocusScope.of(context).unfocus();
-    AdHelper.showInterstitialAd(
-      action,
-      isAdFree: context.read<PlayerProvider>().isAdFree,
-    );
+    AdHelper.showInterstitialAd(() {
+      if (mounted) next();
+    }, isAdFree: context.read<PlayerProvider>().isAdFree);
+  }
+
+  /// The one primary button for the current tab, pinned above the banner so
+  /// it is on screen without scrolling.
+  Widget _buildPrimaryAction(List<Player> p, AppLocalizations l10n) {
+    final enough = p.length >= 2;
+    switch (_tabController.index) {
+      case 0:
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ElevatedButton(
+              focusNode: _spinButtonFocusNode,
+              onPressed:
+                  _isSpinning || !enough
+                      ? null
+                      : () {
+                        _resetGame();
+                        _startSpinning(p);
+                      },
+              child: Text(l10n.spinRoulette),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              _isSpinning
+                  ? l10n.findingWinner(
+                    // The last winner is confirmed a moment before spinning
+                    // ends; don't show "winner N+1 of N".
+                    min(confirmedIndexes.length + 1, spinCount),
+                    spinCount,
+                  )
+                  : enough
+                  ? l10n.selectingWinners(spinCount)
+                  : l10n.noParticipants,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: _kTextSub, fontSize: 12),
+            ),
+          ],
+        );
+      case 1:
+        return ElevatedButton(
+          onPressed:
+              _modeBusy || !enough
+                  ? null
+                  : () => _ladderKey.currentState?.start(),
+          child: Text(l10n.ladderStart),
+        );
+      default:
+        return ElevatedButton(
+          onPressed: !enough ? null : () => _teamKey.currentState?.split(),
+          child: Text(l10n.teamSplitButton),
+        );
+    }
   }
 
   // ── Build ───────────────────────────────────────────────────────────────────
@@ -663,6 +835,7 @@ class _HomeScreenState extends State<HomeScreen>
         final p = provider.players;
         if (p.length > 1 && spinCount >= p.length) spinCount = p.length - 1;
         final l10n = AppLocalizations.of(context)!;
+        final reduceMotion = MediaQuery.of(context).disableAnimations;
 
         return Scaffold(
           appBar: AppBar(
@@ -674,6 +847,7 @@ class _HomeScreenState extends State<HomeScreen>
                     'assets/icon/app_icon.png',
                     width: 24,
                     height: 24,
+                    cacheWidth: 96,
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -689,61 +863,44 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             actions: [
               if (!provider.isAdFree) ...[
-                // 구매 복원 버튼
-                IconButton(
-                  icon: const Icon(Icons.restore, color: _kAction, size: 20),
-                  tooltip: l10n.restorePurchase,
+                TextButton.icon(
                   onPressed: () {
-                    AppAnalytics.restoreTapped();
-                    _iapService.restorePurchases();
+                    AppAnalytics.removeAdsTapped();
+                    _iapService.buyNonConsumable();
                   },
-                ),
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: GestureDetector(
-                      onTap: () {
-                        AppAnalytics.removeAdsTapped();
-                        _iapService.buyNonConsumable();
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _kAction,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.star,
-                              color: Colors.white,
-                              size: 14,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              l10n.removeAds,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                  icon: const Icon(Icons.star, size: 14, color: _kAction),
+                  label: Text(l10n.removeAds),
+                  style: TextButton.styleFrom(
+                    foregroundColor: _kText,
+                    backgroundColor: _kSurface,
+                    minimumSize: const Size(0, 32),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    shape: const StadiumBorder(),
+                    textStyle: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
+                PopupMenuButton<void>(
+                  icon: const Icon(Icons.more_vert, color: _kTextSub),
+                  color: _kCard,
+                  itemBuilder:
+                      (_) => [
+                        PopupMenuItem<void>(
+                          onTap: () {
+                            AppAnalytics.restoreTapped();
+                            _showSnack(l10n.restoreChecking);
+                            _iapService.restorePurchases();
+                          },
+                          child: Text(l10n.restorePurchase),
+                        ),
+                      ],
+                ),
               ] else
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.only(right: 12),
-                    child: Icon(Icons.verified, color: _kSuccess, size: 24),
-                  ),
+                const Padding(
+                  padding: EdgeInsets.only(right: 12),
+                  child: Icon(Icons.verified, color: _kSuccess, size: 24),
                 ),
             ],
             bottom: PreferredSize(
@@ -806,9 +963,23 @@ class _HomeScreenState extends State<HomeScreen>
                                     Expanded(
                                       child: TextField(
                                         controller: _controller,
+                                        // Not single-line on purpose: a
+                                        // single-line field drops pasted
+                                        // line breaks, which separate names.
+                                        minLines: 1,
+                                        maxLines: 3,
+                                        textInputAction: TextInputAction.done,
                                         onSubmitted: (_) {
-                                          provider.addPlayer(_controller.text);
+                                          provider.addPlayers(_controller.text);
                                           _controller.clear();
+                                        },
+                                        // A hardware Enter key types a line
+                                        // break here; treat it as submit.
+                                        onChanged: (v) {
+                                          if (v.endsWith('\n')) {
+                                            provider.addPlayers(v);
+                                            _controller.clear();
+                                          }
                                         },
                                         style: const TextStyle(color: _kText),
                                         decoration: InputDecoration(
@@ -825,25 +996,25 @@ class _HomeScreenState extends State<HomeScreen>
                                         ),
                                       ),
                                     ),
-                                    GestureDetector(
-                                      onTap: () {
-                                        provider.addPlayer(_controller.text);
-                                        _controller.clear();
-                                      },
-                                      child: Container(
-                                        margin: const EdgeInsets.all(6),
-                                        padding: const EdgeInsets.all(9),
-                                        decoration: BoxDecoration(
-                                          color: _kAction,
-                                          borderRadius: BorderRadius.circular(
-                                            8,
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 4),
+                                      child: IconButton.filled(
+                                        tooltip: l10n.addParticipant,
+                                        onPressed: () {
+                                          provider.addPlayers(_controller.text);
+                                          _controller.clear();
+                                        },
+                                        style: IconButton.styleFrom(
+                                          backgroundColor: _kAction,
+                                          foregroundColor: Colors.white,
+                                          fixedSize: const Size(40, 40),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
                                           ),
                                         ),
-                                        child: const Icon(
-                                          Icons.add,
-                                          color: Colors.white,
-                                          size: 20,
-                                        ),
+                                        icon: const Icon(Icons.add, size: 20),
                                       ),
                                     ),
                                   ],
@@ -866,23 +1037,17 @@ class _HomeScreenState extends State<HomeScreen>
                                     ),
                                   ),
                                   if (p.isNotEmpty)
-                                    GestureDetector(
-                                      onTap: () {
-                                        for (
-                                          var i = p.length - 1;
-                                          i >= 0;
-                                          i--
-                                        ) {
-                                          provider.removePlayer(i);
-                                        }
-                                      },
-                                      child: Text(
-                                        l10n.clearAll,
-                                        style: const TextStyle(
-                                          color: _kAction,
+                                    TextButton(
+                                      onPressed:
+                                          () =>
+                                              _confirmClearAll(provider, l10n),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: _kTextSub,
+                                        textStyle: const TextStyle(
                                           fontSize: 12,
                                         ),
                                       ),
+                                      child: Text(l10n.clearAll),
                                     ),
                                 ],
                               ),
@@ -932,10 +1097,9 @@ class _HomeScreenState extends State<HomeScreen>
                                             _kWheelTextColors[index %
                                                 _kWheelTextColors.length];
                                         return Container(
-                                          height: 48,
+                                          height: 52,
                                           padding: const EdgeInsets.only(
                                             left: 8,
-                                            right: 4,
                                           ),
                                           decoration: BoxDecoration(
                                             color: _kCard,
@@ -950,7 +1114,10 @@ class _HomeScreenState extends State<HomeScreen>
                                                 radius: 16,
                                                 backgroundColor: wheelColor,
                                                 child: Text(
-                                                  p[index].name.substring(0, 1),
+                                                  p[index]
+                                                      .name
+                                                      .characters
+                                                      .first,
                                                   style: TextStyle(
                                                     color: onWheelColor,
                                                     fontWeight: FontWeight.bold,
@@ -971,20 +1138,29 @@ class _HomeScreenState extends State<HomeScreen>
                                                   ),
                                                 ),
                                               ),
-                                              GestureDetector(
-                                                onTap:
+                                              IconButton(
+                                                tooltip: l10n.editName,
+                                                onPressed:
+                                                    () => _editPlayer(
+                                                      provider,
+                                                      index,
+                                                      l10n,
+                                                    ),
+                                                color: _kTextSub,
+                                                iconSize: 18,
+                                                icon: const Icon(
+                                                  Icons.edit_outlined,
+                                                ),
+                                              ),
+                                              IconButton(
+                                                tooltip: l10n.removeParticipant,
+                                                onPressed:
                                                     () => provider.removePlayer(
                                                       index,
                                                     ),
-                                                child: const SizedBox(
-                                                  width: 44,
-                                                  height: 44,
-                                                  child: Icon(
-                                                    Icons.close,
-                                                    color: _kTextSub,
-                                                    size: 18,
-                                                  ),
-                                                ),
+                                                color: _kTextSub,
+                                                iconSize: 18,
+                                                icon: const Icon(Icons.close),
                                               ),
                                             ],
                                           ),
@@ -1025,34 +1201,39 @@ class _HomeScreenState extends State<HomeScreen>
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
-                                  OutlinedButton.icon(
-                                    onPressed:
-                                        () => _showHistorySheet(context, l10n),
-                                    icon: const Icon(
-                                      Icons.history,
-                                      size: 15,
-                                      color: _kTextSub,
-                                    ),
-                                    label: Text(
-                                      l10n.history,
-                                      style: const TextStyle(
+                                  if (_tabController.index == 0) ...[
+                                    const SizedBox(width: 8),
+                                    OutlinedButton.icon(
+                                      onPressed:
+                                          () =>
+                                              _showHistorySheet(context, l10n),
+                                      icon: const Icon(
+                                        Icons.history,
+                                        size: 15,
                                         color: _kTextSub,
-                                        fontSize: 13,
+                                      ),
+                                      label: Text(
+                                        l10n.history,
+                                        style: const TextStyle(
+                                          color: _kTextSub,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                      style: OutlinedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 12,
+                                        ),
+                                        minimumSize: const Size(0, 44),
+                                        side: const BorderSide(color: _kBorder),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                    style: OutlinedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 12,
-                                      ),
-                                      minimumSize: const Size(0, 44),
-                                      side: const BorderSide(color: _kBorder),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                    ),
-                                  ),
+                                  ],
                                 ],
                               ),
                             ],
@@ -1093,6 +1274,7 @@ class _HomeScreenState extends State<HomeScreen>
                                       children: [
                                         _StepperButton(
                                           icon: Icons.remove,
+                                          tooltip: l10n.decrease,
                                           onPressed:
                                               _isSpinning || spinCount <= 1
                                                   ? null
@@ -1116,6 +1298,7 @@ class _HomeScreenState extends State<HomeScreen>
                                         ),
                                         _StepperButton(
                                           icon: Icons.add,
+                                          tooltip: l10n.increase,
                                           onPressed:
                                               _isSpinning ||
                                                       p.length <= 1 ||
@@ -1141,296 +1324,285 @@ class _HomeScreenState extends State<HomeScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              // Wheel (AspectRatio로 정사각형 고정)
-                              Stack(
-                                children: [
-                                  AspectRatio(
-                                    aspectRatio: 1,
-                                    child: Stack(
-                                      children: [
-                                        // 외곽 림(rim) — 그라디언트 + 입체 그림자
-                                        Container(
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            gradient: const SweepGradient(
-                                              colors: [
-                                                _kCard,
-                                                _kBorder,
-                                                _kCard,
-                                                _kSurface,
-                                                _kCard,
-                                              ],
-                                            ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black.withOpacity(
-                                                  0.07,
+                              // Square wheel, capped so tablets and landscape
+                              // phones don't get a screen-wide wheel.
+                              Center(
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: _kWheelMaxSize,
+                                  ),
+                                  child: Stack(
+                                    children: [
+                                      AspectRatio(
+                                        aspectRatio: 1,
+                                        child: Stack(
+                                          children: [
+                                            // 외곽 림(rim) — 그라디언트 + 입체 그림자
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                gradient: const SweepGradient(
+                                                  colors: [
+                                                    _kCard,
+                                                    _kBorder,
+                                                    _kCard,
+                                                    _kSurface,
+                                                    _kCard,
+                                                  ],
                                                 ),
-                                                offset: const Offset(0, 2),
-                                                blurRadius: 8,
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black
+                                                        .withOpacity(0.07),
+                                                    offset: const Offset(0, 2),
+                                                    blurRadius: 8,
+                                                  ),
+                                                ],
                                               ),
-                                            ],
+                                            ),
+                                            // 휠 (림 안쪽에 패딩으로 띄움)
+                                            Padding(
+                                              padding: const EdgeInsets.all(7),
+                                              child:
+                                                  p.length < 2
+                                                      ? Center(
+                                                        child: Text(
+                                                          l10n.noParticipants,
+                                                          style:
+                                                              const TextStyle(
+                                                                color:
+                                                                    _kTextSub,
+                                                              ),
+                                                        ),
+                                                      )
+                                                      : FortuneWheel(
+                                                        selected:
+                                                            _selected.stream,
+                                                        animateFirst: false,
+                                                        // DESIGN.md §15: under
+                                                        // reduced motion the
+                                                        // result is instant.
+                                                        duration:
+                                                            reduceMotion
+                                                                ? Duration.zero
+                                                                : _kSpinDuration,
+                                                        indicators: const [
+                                                          FortuneIndicator(
+                                                            alignment:
+                                                                Alignment
+                                                                    .topCenter,
+                                                            child:
+                                                                TriangleIndicator(
+                                                                  color:
+                                                                      Colors
+                                                                          .white,
+                                                                  width: 28,
+                                                                  height: 28,
+                                                                ),
+                                                          ),
+                                                        ],
+                                                        physics: CircularPanPhysics(
+                                                          duration:
+                                                              const Duration(
+                                                                seconds: 2,
+                                                              ),
+                                                          curve:
+                                                              Curves
+                                                                  .easeOutCubic,
+                                                        ),
+                                                        items:
+                                                            p.asMap().entries.map((
+                                                              e,
+                                                            ) {
+                                                              final color =
+                                                                  _kWheelColors[e
+                                                                          .key %
+                                                                      _kWheelColors
+                                                                          .length];
+                                                              final textColor =
+                                                                  _kWheelTextColors[e
+                                                                          .key %
+                                                                      _kWheelTextColors
+                                                                          .length];
+                                                              final onLightColor =
+                                                                  textColor ==
+                                                                  _kText;
+                                                              // 참가자가 많을수록 조각이 좁아지므로
+                                                              // 기본 글자 크기를 줄이고, 이름이 길면 추가로 축소
+                                                              final baseFontSize =
+                                                                  p.length <= 3
+                                                                      ? 26.0
+                                                                      : p.length <=
+                                                                          5
+                                                                      ? 22.0
+                                                                      : p.length <=
+                                                                          8
+                                                                      ? 18.0
+                                                                      : 14.0;
+                                                              return FortuneItem(
+                                                                child: FittedBox(
+                                                                  fit:
+                                                                      BoxFit
+                                                                          .scaleDown,
+                                                                  child: Text(
+                                                                    e
+                                                                        .value
+                                                                        .name,
+                                                                    style: TextStyle(
+                                                                      fontSize:
+                                                                          baseFontSize,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w900,
+                                                                      color:
+                                                                          textColor,
+                                                                      shadows:
+                                                                          onLightColor
+                                                                              ? const []
+                                                                              : const [
+                                                                                Shadow(
+                                                                                  color:
+                                                                                      Colors.black87,
+                                                                                  blurRadius:
+                                                                                      6,
+                                                                                  offset: Offset(
+                                                                                    0,
+                                                                                    2,
+                                                                                  ),
+                                                                                ),
+                                                                                Shadow(
+                                                                                  color:
+                                                                                      Colors.black54,
+                                                                                  blurRadius:
+                                                                                      14,
+                                                                                ),
+                                                                              ],
+                                                                    ),
+                                                                    textAlign:
+                                                                        TextAlign
+                                                                            .center,
+                                                                  ),
+                                                                ),
+                                                                style: FortuneItemStyle(
+                                                                  color: color,
+                                                                  borderColor: Colors
+                                                                      .white
+                                                                      .withOpacity(
+                                                                        0.65,
+                                                                      ),
+                                                                  borderWidth:
+                                                                      3,
+                                                                ),
+                                                              );
+                                                            }).toList(),
+                                                        onAnimationEnd: () {
+                                                          _spinPlayer.stop();
+                                                          if (resultIndex ==
+                                                                  null ||
+                                                              resultIndex! >=
+                                                                  p.length)
+                                                            return;
+                                                          final ci =
+                                                              resultIndex!;
+                                                          provider.addHistory(
+                                                            p[ci].name,
+                                                          );
+                                                          setState(() {
+                                                            selectedIndexes.add(
+                                                              ci,
+                                                            );
+                                                            confirmedIndexes
+                                                                .add(ci);
+                                                          });
+                                                          if (confirmedIndexes
+                                                                  .length ==
+                                                              spinCount) {
+                                                            HapticFeedback.heavyImpact();
+                                                            Future.delayed(
+                                                              const Duration(
+                                                                milliseconds:
+                                                                    120,
+                                                              ),
+                                                              HapticFeedback
+                                                                  .heavyImpact,
+                                                            );
+                                                            Future.delayed(
+                                                              const Duration(
+                                                                milliseconds:
+                                                                    240,
+                                                              ),
+                                                              HapticFeedback
+                                                                  .heavyImpact,
+                                                            );
+                                                            _winPlayer.play(
+                                                              AssetSource(
+                                                                'sounds/win.wav',
+                                                              ),
+                                                            );
+                                                            if (!reduceMotion) {
+                                                              _confettiController
+                                                                  .play();
+                                                            }
+                                                          }
+                                                          Future.delayed(
+                                                            const Duration(
+                                                              milliseconds: 800,
+                                                            ),
+                                                            _spinNext,
+                                                          );
+                                                        },
+                                                      ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      // Confetti
+                                      Align(
+                                        alignment: Alignment.center,
+                                        child: IgnorePointer(
+                                          child: ConfettiWidget(
+                                            confettiController:
+                                                _confettiController,
+                                            blastDirectionality:
+                                                BlastDirectionality.explosive,
+                                            shouldLoop: false,
+                                            emissionFrequency: 0.05,
+                                            numberOfParticles: 30,
+                                            maxBlastForce: 20,
+                                            minBlastForce: 5,
+                                            gravity: 0.3,
                                           ),
                                         ),
-                                        // 휠 (림 안쪽에 패딩으로 띄움)
-                                        Padding(
-                                          padding: const EdgeInsets.all(7),
-                                          child:
-                                              p.length < 2
-                                                  ? Center(
-                                                    child: Text(
-                                                      l10n.noParticipants,
-                                                      style: const TextStyle(
-                                                        color: _kTextSub,
-                                                      ),
-                                                    ),
-                                                  )
-                                                  : FortuneWheel(
-                                                    selected: _selected.stream,
-                                                    animateFirst: false,
-                                                    indicators: const [
-                                                      FortuneIndicator(
-                                                        alignment:
-                                                            Alignment.topCenter,
-                                                        child:
-                                                            TriangleIndicator(
-                                                              color:
-                                                                  Colors.white,
-                                                              width: 28,
-                                                              height: 28,
-                                                            ),
-                                                      ),
-                                                    ],
-                                                    physics: CircularPanPhysics(
-                                                      duration: const Duration(
-                                                        seconds: 2,
-                                                      ),
-                                                      curve:
-                                                          Curves.easeOutCubic,
-                                                    ),
-                                                    items:
-                                                        p.asMap().entries.map((
-                                                          e,
-                                                        ) {
-                                                          final color =
-                                                              _kWheelColors[e
-                                                                      .key %
-                                                                  _kWheelColors
-                                                                      .length];
-                                                          final textColor =
-                                                              _kWheelTextColors[e
-                                                                      .key %
-                                                                  _kWheelTextColors
-                                                                      .length];
-                                                          final onLightColor =
-                                                              textColor ==
-                                                              _kText;
-                                                          // 참가자가 많을수록 조각이 좁아지므로
-                                                          // 기본 글자 크기를 줄이고, 이름이 길면 추가로 축소
-                                                          final baseFontSize =
-                                                              p.length <= 3
-                                                                  ? 26.0
-                                                                  : p.length <=
-                                                                      5
-                                                                  ? 22.0
-                                                                  : p.length <=
-                                                                      8
-                                                                  ? 18.0
-                                                                  : 14.0;
-                                                          return FortuneItem(
-                                                            child: FittedBox(
-                                                              fit:
-                                                                  BoxFit
-                                                                      .scaleDown,
-                                                              child: Text(
-                                                                e.value.name,
-                                                                style: TextStyle(
-                                                                  fontSize:
-                                                                      baseFontSize,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w900,
-                                                                  color:
-                                                                      textColor,
-                                                                  shadows:
-                                                                      onLightColor
-                                                                          ? const []
-                                                                          : const [
-                                                                            Shadow(
-                                                                              color:
-                                                                                  Colors.black87,
-                                                                              blurRadius:
-                                                                                  6,
-                                                                              offset: Offset(
-                                                                                0,
-                                                                                2,
-                                                                              ),
-                                                                            ),
-                                                                            Shadow(
-                                                                              color:
-                                                                                  Colors.black54,
-                                                                              blurRadius:
-                                                                                  14,
-                                                                            ),
-                                                                          ],
-                                                                ),
-                                                                textAlign:
-                                                                    TextAlign
-                                                                        .center,
-                                                              ),
-                                                            ),
-                                                            style: FortuneItemStyle(
-                                                              color: color,
-                                                              borderColor: Colors
-                                                                  .white
-                                                                  .withOpacity(
-                                                                    0.65,
-                                                                  ),
-                                                              borderWidth: 3,
-                                                            ),
-                                                          );
-                                                        }).toList(),
-                                                    onAnimationEnd: () {
-                                                      _spinPlayer.stop();
-                                                      if (resultIndex == null ||
-                                                          resultIndex! >=
-                                                              p.length)
-                                                        return;
-                                                      final ci = resultIndex!;
-                                                      provider.addHistory(
-                                                        p[ci].name,
-                                                      );
-                                                      setState(() {
-                                                        selectedIndexes.add(ci);
-                                                        confirmedIndexes.add(
-                                                          ci,
-                                                        );
-                                                      });
-                                                      if (confirmedIndexes
-                                                              .length ==
-                                                          spinCount) {
-                                                        HapticFeedback.heavyImpact();
-                                                        Future.delayed(
-                                                          const Duration(
-                                                            milliseconds: 120,
-                                                          ),
-                                                          HapticFeedback
-                                                              .heavyImpact,
-                                                        );
-                                                        Future.delayed(
-                                                          const Duration(
-                                                            milliseconds: 240,
-                                                          ),
-                                                          HapticFeedback
-                                                              .heavyImpact,
-                                                        );
-                                                        _winPlayer.play(
-                                                          AssetSource(
-                                                            'sounds/win.wav',
-                                                          ),
-                                                        );
-                                                        _confettiController
-                                                            .play();
-                                                      }
-                                                      Future.delayed(
-                                                        const Duration(
-                                                          milliseconds: 800,
-                                                        ),
-                                                        _spinNext,
-                                                      );
-                                                    },
-                                                  ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  // Confetti
-                                  Align(
-                                    alignment: Alignment.center,
-                                    child: IgnorePointer(
-                                      child: ConfettiWidget(
-                                        confettiController: _confettiController,
-                                        blastDirectionality:
-                                            BlastDirectionality.explosive,
-                                        shouldLoop: false,
-                                        emissionFrequency: 0.05,
-                                        numberOfParticles: 30,
-                                        maxBlastForce: 20,
-                                        minBlastForce: 5,
-                                        gravity: 0.3,
                                       ),
-                                    ),
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
                             ],
                           ),
                         ),
 
-                        // ── Spin button section ──────────────────────────────────────────
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 14,
-                          ),
-                          child: Column(
-                            children: [
-                              if (!_isSpinning && p.length >= 2)
-                                _GradientSpinButton(
-                                  label: l10n.spinRoulette,
-                                  focusNode: _spinButtonFocusNode,
-                                  onPressed: () {
-                                    _resetGame();
-                                    _startSpinning(p);
-                                  },
-                                )
-                              else if (_isSpinning)
-                                const SizedBox(
-                                  width: 28,
-                                  height: 28,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    color: _kSuccess,
-                                  ),
-                                )
-                              else
-                                const SizedBox(height: 54),
-                              const SizedBox(height: 5),
-                              Text(
-                                _isSpinning
-                                    ? l10n.findingWinner(
-                                      confirmedIndexes.length + 1,
-                                      spinCount,
-                                    )
-                                    : l10n.selectingWinners(spinCount),
-                                style: const TextStyle(
-                                  color: _kTextSub,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                            ],
-                          ),
-                        ),
+                        const SizedBox(height: 16),
                       ] else if (_tabController.index == 1)
                         LadderPanel(
+                          key: _ladderKey,
                           names: p.map((e) => e.name).toList(),
-                          runWithAd: _runWithAd,
+                          afterResult: _afterResult,
                           onBusyChanged:
                               (busy) => setState(() => _modeBusy = busy),
                         )
                       else
                         TeamSplitPanel(
+                          key: _teamKey,
                           names: p.map((e) => e.name).toList(),
-                          runWithAd: _runWithAd,
-                          onBusyChanged:
-                              (busy) => setState(() => _modeBusy = busy),
+                          afterResult: _afterResult,
                         ),
                     ], // SingleChildScrollView > Column children
                   ),
                 ),
               ), // Expanded
 
+              _ActionBar(child: _buildPrimaryAction(p, l10n)),
               SafeArea(top: false, child: const MyBannerAd()),
             ],
           ),
@@ -1862,11 +2034,18 @@ class _PresetSheetState extends State<_PresetSheet> {
                               decoration: BoxDecoration(
                                 color: _kCard,
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border(
-                                  left: BorderSide(color: color, width: 4),
-                                ),
+                                border: Border.all(color: _kBorder),
                               ),
                               child: ListTile(
+                                leading: Container(
+                                  width: 12,
+                                  height: 12,
+                                  decoration: BoxDecoration(
+                                    color: color,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                minLeadingWidth: 12,
                                 contentPadding: const EdgeInsets.symmetric(
                                   horizontal: 14,
                                   vertical: 4,
@@ -1982,62 +2161,29 @@ class _GradientText extends StatelessWidget {
 
 class _StepperButton extends StatelessWidget {
   final IconData icon;
+  final String tooltip;
   final VoidCallback? onPressed;
-  const _StepperButton({required this.icon, this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    final enabled = onPressed != null;
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: 44,
-        height: 44,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: enabled ? _kCard : _kDisabled,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: _kBorder),
-        ),
-        child: Icon(icon, size: 16, color: enabled ? _kTextSub : _kBorder),
-      ),
-    );
-  }
-}
-
-class _GradientSpinButton extends StatelessWidget {
-  final String label;
-  final VoidCallback onPressed;
-  final FocusNode? focusNode;
-  const _GradientSpinButton({
-    required this.label,
-    required this.onPressed,
-    this.focusNode,
+  const _StepperButton({
+    required this.icon,
+    required this.tooltip,
+    this.onPressed,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Focus(
-      focusNode: focusNode,
-      child: GestureDetector(
-        onTap: onPressed,
-        child: Container(
-          height: 48,
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: _kAction,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
+    // Material IconButton: 48dp target, ripple, focus and a TalkBack label.
+    return IconButton(
+      onPressed: onPressed,
+      tooltip: tooltip,
+      icon: Icon(icon, size: 16),
+      style: IconButton.styleFrom(
+        fixedSize: const Size(48, 48),
+        foregroundColor: _kTextSub,
+        disabledForegroundColor: _kBorder,
+        backgroundColor: _kCard,
+        disabledBackgroundColor: _kDisabled,
+        side: const BorderSide(color: _kBorder),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }
@@ -2222,7 +2368,7 @@ class _WinnerDialogState extends State<_WinnerDialog> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              icon: const Icon(Icons.ios_share, size: 16),
+              icon: const Icon(Icons.share, size: 16),
               label: Text(AppLocalizations.of(context)!.shareResult),
             ),
             const SizedBox(height: 16),
@@ -2261,6 +2407,37 @@ class _WinnerDialogState extends State<_WinnerDialog> {
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// White strip with a top hairline that holds the current tab's primary
+/// button, between the scrolling content and the banner.
+/// Largest wheel and action-bar width; keeps tablets and landscape usable.
+const double _kWheelMaxSize = 440;
+
+/// Wheel spin length (the flutter_fortune_wheel default).
+const Duration _kSpinDuration = Duration(seconds: 5);
+
+class _ActionBar extends StatelessWidget {
+  final Widget child;
+  const _ActionBar({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: _kCard,
+        border: Border(top: BorderSide(color: _kBorder)),
+      ),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: _kWheelMaxSize),
+          // Full width in every tab, like the roulette button.
+          child: SizedBox(width: double.infinity, child: child),
         ),
       ),
     );

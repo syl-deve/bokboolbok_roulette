@@ -131,22 +131,24 @@ const double _kResultRowHeight = 48;
 class LadderPanel extends StatefulWidget {
   final List<String> names;
 
-  /// Runs [action] after the interstitial ad (or at once when ad-free).
-  final void Function(VoidCallback action) runWithAd;
+  /// Runs [next] after the result dialog closes: shows the interstitial
+  /// first (unless ad-free), the same rule as the roulette.
+  final void Function(VoidCallback next) afterResult;
   final ValueChanged<bool> onBusyChanged;
 
   const LadderPanel({
     super.key,
     required this.names,
-    required this.runWithAd,
+    required this.afterResult,
     required this.onBusyChanged,
   });
 
   @override
-  State<LadderPanel> createState() => _LadderPanelState();
+  State<LadderPanel> createState() => LadderPanelState();
 }
 
-class _LadderPanelState extends State<LadderPanel>
+/// Public so the home screen's bottom action bar can call [start].
+class LadderPanelState extends State<LadderPanel>
     with SingleTickerProviderStateMixin {
   final Random _random = Random();
   final AudioPlayer _winPlayer = AudioPlayer();
@@ -225,22 +227,20 @@ class _LadderPanelState extends State<LadderPanel>
     widget.onBusyChanged(value);
   }
 
-  void _start() {
+  /// Draws a new ladder. Called from the bottom action bar.
+  void start() {
     final n = widget.names.length;
     if (_busy || n < 2) return;
     _setBusy(true);
-    widget.runWithAd(() {
-      if (!mounted) return;
-      AppAnalytics.ladderStart(participants: n);
-      HapticFeedback.mediumImpact();
-      setState(() => _rungs = generateRungs(n, _random));
-      // DESIGN.md §15: under reduced motion the reveal is instant.
-      _progress.duration =
-          MediaQuery.of(context).disableAnimations
-              ? Duration.zero
-              : _kDrawDuration;
-      _progress.forward(from: 0);
-    });
+    AppAnalytics.ladderStart(participants: n);
+    HapticFeedback.mediumImpact();
+    setState(() => _rungs = generateRungs(n, _random));
+    // DESIGN.md §15: under reduced motion the reveal is instant.
+    _progress.duration =
+        MediaQuery.of(context).disableAnimations
+            ? Duration.zero
+            : _kDrawDuration;
+    _progress.forward(from: 0);
   }
 
   void _onFinished() {
@@ -293,12 +293,14 @@ class _LadderPanelState extends State<LadderPanel>
             againLabel: l10n.ladderAgain,
             onClose: () {
               Navigator.pop(ctx);
-              ReviewPrompter.onResult(canPrompt: true);
+              widget.afterResult(
+                () => ReviewPrompter.onResult(canPrompt: true),
+              );
             },
             onAgain: () {
               Navigator.pop(ctx);
               ReviewPrompter.onResult(canPrompt: false);
-              Future.delayed(const Duration(milliseconds: 100), _start);
+              widget.afterResult(start);
             },
           ),
     );
@@ -408,8 +410,9 @@ class _LadderPanelState extends State<LadderPanel>
               clipBehavior: Clip.antiAlias,
               child: LayoutBuilder(
                 builder: (context, constraints) {
+                  // Wider columns at large font sizes so names still fit.
                   final colWidth = max(
-                    _kColumnMinWidth,
+                    MediaQuery.textScalerOf(context).scale(_kColumnMinWidth),
                     constraints.maxWidth / n,
                   );
                   final width = colWidth * n;
@@ -476,15 +479,8 @@ class _LadderPanelState extends State<LadderPanel>
                 },
               ),
             ),
-            const SizedBox(height: 12),
+            // The "start" button lives in the home screen's bottom bar.
           ],
-          SizedBox(
-            height: 48,
-            child: ElevatedButton(
-              onPressed: _busy || n < 2 ? null : _start,
-              child: Text(l10n.ladderStart),
-            ),
-          ),
         ],
       ),
     );

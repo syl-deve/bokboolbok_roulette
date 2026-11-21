@@ -4,7 +4,7 @@
   "participants": "参与者",
   "roulette": "轮盘",
   "history": "历史记录",
-  "enterParticipantName": "输入参与者姓名",
+  "enterParticipantName": "名字（用逗号可添加多人）",
   "exampleName": "例：张三",
   "noParticipants": "请添加参与者！",
   "winner": "中奖人数",
@@ -84,5 +84,16 @@
   "teamResultTitle": "分组结果",
   "teamAgain": "重新分组",
   "shareLadderMessage": "爬梯子结果（共{total}人）",
-  "shareTeamMessage": "分组结果（共{total}人，{teams}组）"
+  "shareTeamMessage": "分组结果（共{total}人，{teams}组）",
+  "editName": "编辑名字",
+  "nameTaken": "列表中已有这个名字。",
+  "proActivated": "PRO 已启用，广告已移除。",
+  "purchaseFailed": "未能完成购买，请稍后再试。",
+  "storeUnavailable": "无法连接 Google Play，请检查网络连接。",
+  "restoreChecking": "正在查询购买记录。",
+  "addParticipant": "添加参与者",
+  "removeParticipant": "删除参与者",
+  "decrease": "减少",
+  "increase": "增加",
+  "confirmClearAll": "要删除全部 {count} 名参与者吗？"
 }

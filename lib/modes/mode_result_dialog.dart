@@ -111,7 +111,7 @@ class _ModeResultDialogState extends State<ModeResultDialog> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              icon: const Icon(Icons.ios_share, size: 16),
+              icon: const Icon(Icons.share, size: 16),
               label: Text(l10n.shareResult),
             ),
             const SizedBox(height: 16),
