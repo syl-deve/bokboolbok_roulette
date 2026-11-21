@@ -2,43 +2,45 @@
 
 [![Get it on Google Play](https://play.google.com/intl/en_us/badges/static/images/badges/ko_badge_web_generic.png)](https://play.google.com/store/apps/details?id=com.malee.bokboolbok_roulette)
 
-친구, 동료들과 함께 즐기는 간단하고 직관적인 룰렛 추첨 앱입니다.
-Flutter로 개발되었으며, Google Play Store에서 누구나 무료로 다운로드할 수 있습니다.
+친구, 가족, 동료와 함께 쓰는 랜덤 추첨 앱입니다. 참가자 이름만 넣으면 룰렛, 사다리타기, 팀 나누기를 바로 할 수 있어요.
+Flutter로 개발했고, Google Play에서 무료로 받을 수 있습니다(Android 전용).
 
 <br>
 
 ## ✨ 주요 기능
 
-### 🎡 룰렛 추첨
-- 부드러운 애니메이션의 컬러풀한 룰렛 휠
-- 당첨자 수 조절 (1명 ~ 전체 인원 -1명)
-- 다회 뽑기 시 중복 당첨 없이 순차 선정
-- 최종 당첨자 발표 시 폭죽 이펙트 + 당첨자 다이얼로그
+화면 상단의 **[룰렛 | 사다리 | 팀 나누기]** 탭으로 모드를 바꾸고, 참가자 목록은 세 모드가 함께 씁니다.
 
-### 👥 참가자 관리
-- 참가자 추가 / 개별 삭제 / 전체 삭제
-- 앱 재시작 후에도 목록 유지 (로컬 저장)
+### 🎡 룰렛
+- 당첨자 수 조절 (1명 ~ 전체 인원 -1명), 여러 명이면 중복 없이 한 명씩 차례로 선정
+- 효과음·진동·폭죽 효과, 당첨자 창
 
-### 📂 프리셋
-- 현재 참가자 목록을 이름을 붙여 프리셋으로 저장
-- 저장된 프리셋 원터치 불러오기 (현재 목록 교체)
-- 프리셋 미리보기: 참가자 최대 3명 이름 + 총 인원 수
-- 프리셋 삭제
-- 앱 재시작 후에도 프리셋 유지
+### 🪜 사다리타기
+- 결과 칸을 직접 입력 (기본값: 당첨 1칸 + 나머지 꽝), 입력한 결과는 저장
+- "사다리 타기"를 누르는 순간 가로줄이 생기고, 참가자별 색 선이 내려가며 결과 공개
+- 결과를 먼저 완전히 무작위로 정한 뒤 그 결과가 나오는 사다리를 그려서, 누구나 모든 칸에 같은 확률로 도착
 
-### 📜 당첨 기록
-- 당첨자 자동 기록 (이름 + 누적 횟수)
-- 당첨 횟수 순위 정렬
-- 기록 전체 초기화
+### 👥 팀 나누기
+- 팀 수 선택 (2팀 ~ 참가자 수), 인원 차이가 최대 1명이 되도록 무작위로 나눔
 
-### 🌐 다국어 지원
+### 📤 결과 공유
+- 모든 모드의 결과 창에서 "결과 공유" → 결과 글 + Play 스토어 링크 (카카오톡에서는 스토어 미리보기 카드로 보임)
+
+### 👤 참가자 · 📂 프리셋 · 📜 히스토리
+- 참가자 추가/삭제/전체 삭제, 앱을 다시 열어도 유지
+- 자주 쓰는 목록을 프리셋으로 저장하고 한 번에 불러오기
+- 룰렛 당첨 기록과 횟수 순위 (이름에 특수문자가 있어도 저장)
+
+### 🌐 다국어
 한국어 · English · 日本語 · 中文
 
-### 💰 광고 및 PRO 버전
-- 하단 배너 광고 (AdMob)
-- 스핀 후 전면 광고 (AdMob)
-- **PRO 버전 (인앱 결제)**: 광고 상시 제거 및 세련된 전용 UI 제공
-- **구매 복원**: AppBar의 전용 버튼을 통해 언제든 구매 내역 복원 가능 (다국어 지원)
+### 💰 광고 · PRO
+- 하단 배너 광고, 각 모드 시작 전 전면 광고 (AdMob)
+- **PRO (1회 구매, `remove_ads_pro`)**: 모든 광고 제거, 앱바에서 구매 복원 가능
+
+### ⭐ 기타
+- 결과 3회·10회째에 Play 인앱 리뷰 요청
+- Firebase Analytics로 기능 사용 통계 수집 (참가자 이름 등 입력한 글자는 수집하지 않음)
 
 <br>
 
@@ -46,31 +48,29 @@ Flutter로 개발되었으며, Google Play Store에서 누구나 무료로 다�
 
 | 구분 | 기술 | 설명 |
 |:---|:---|:---|
-| **Framework** | `Flutter` / `Dart` | 크로스플랫폼 앱 개발 |
-| **State Management** | `Provider` | 단일 `ChangeNotifier` 기반 상태 관리 |
-| **UI / Animation** | `flutter_fortune_wheel`, `confetti` | 룰렛 휠, 폭죽 애니메이션 |
-| **Sound / Haptic** | `audioplayers` | 스핀·당첨 효과음, 햅틱 피드백 |
-| **Local Storage** | `shared_preferences` | 참가자 목록 · 프리셋 · 당첨 기록 영속성 |
-| **Monetization** | `google_mobile_ads`, `in_app_purchase` | 광고 및 인앱 결제(광고 제거) |
-| **Localization** | `flutter_localizations` | ko / en / ja / zh |
+| **Framework** | Flutter / Dart | Android 전용 |
+| **상태 관리** | Provider | `PlayerProvider` 하나로 참가자·프리셋·기록 관리 |
+| **UI / 애니메이션** | `flutter_fortune_wheel`, `confetti`, CustomPainter | 룰렛 휠, 폭죽, 사다리 그리기 |
+| **소리 / 진동** | `audioplayers`, `HapticFeedback` | |
+| **저장** | `shared_preferences` | 참가자·프리셋·기록·사다리 결과 |
+| **수익화** | `google_mobile_ads`, `in_app_purchase` | 광고, 광고 제거 PRO |
+| **분석 · 리뷰 · 공유** | `firebase_analytics`, `in_app_review`, `share_plus` | |
+| **다국어** | `flutter_localizations` (ARB) | ko / en / ja / zh |
 
 <br>
 
 ## 🚀 실행 방법
 
 ```bash
-# 1. 패키지 설치
-flutter pub get
-
-# 2. 앱 실행
-flutter run
-
-# 3. 빌드 (Android 릴리즈)
-flutter build apk --release
-
-# l10n 재생성 (arb 파일 수정 후)
-flutter gen-l10n
+flutter pub get                    # 패키지 설치
+flutter run                        # Android 기기에서 실행
+flutter test                       # 테스트
+flutter analyze --no-fatal-infos   # 정적 분석
+flutter gen-l10n                   # ARB 수정 후 다국어 파일 재생성
+flutter build appbundle --release  # Play Console 업로드용 AAB
 ```
+
+릴리스 서명에는 `android/key.properties`와 `my-release-key.jks`가 필요합니다(둘 다 git 제외).
 
 <br>
 
@@ -78,36 +78,38 @@ flutter gen-l10n
 
 ```
 lib/
-├── main.dart          # 앱 전체 로직 (~1,800 lines)
-│   ├── IAPService      # 인앱 결제 구매 및 복원 로직
-│   ├── AdHelper        # AdMob 전면광고 라이프사이클
-    ├── MyBannerAd      # 배너광고 위젯
-    ├── Player          # 참가자 데이터 모델
-    ├── Preset          # 프리셋 데이터 모델
-    ├── PlayerProvider  # 상태 관리 (참가자·프리셋·기록)
-    ├── HomeScreen      # 메인 UI (룰렛·참가자 목록·스핀 버튼)
-    ├── _PresetSheet    # 프리셋 BottomSheet
-    ├── _HistorySheet   # 당첨 기록 BottomSheet
-    └── _WinnerDialog   # 당첨자 다이얼로그
-lib/l10n/
-    ├── app_ko.arb
-    ├── app_en.arb
-    ├── app_ja.arb
-    └── app_zh.arb
+├── main.dart                    # 앱 설정, 룰렛, 공용 화면 (탭·참가자·프리셋·히스토리)
+├── modes/
+│   ├── ladder.dart              # 사다리타기 (로직 + 화면)
+│   ├── team_split.dart          # 팀 나누기 (로직 + 화면)
+│   └── mode_result_dialog.dart  # 사다리·팀 공용 결과 창
+├── design_tokens.dart           # 디자인 색상 (DESIGN.md 기준)
+├── app_analytics.dart           # Firebase Analytics
+├── result_share.dart            # 결과 공유
+├── review_prompter.dart         # 인앱 리뷰 요청
+├── iap_service.dart             # 인앱 결제
+├── firebase_options.dart        # Firebase 설정 (자동 생성)
+└── l10n/                        # 다국어 (ko, en, ja, zh)
+test/                            # 사다리 공정성·팀 균형·기록 저장 테스트
+store-screenshots/               # Play 스토어 스크린샷 (폰·태블릿 × 4개 언어)
+privacy-policy.html, terms.html  # GitHub Pages로 공개되는 개인정보처리방침·이용약관
 ```
+
+개발 세부 규칙(저장 키, 분석 이벤트, 주의할 점)은 [AGENTS.md](AGENTS.md), 디자인 규칙은 [DESIGN.md](DESIGN.md)에 있습니다.
 
 <br>
 
-## 🗺️ 로드맵 (미구현 기능)
+## 🗺️ 다음에 할 일
 
-| 기능 | 설명 |
+| 항목 | 설명 |
 |:---|:---|
-| ✏️ 참가자 이름 편집 | 삭제 없이 인라인 수정 |
-| 🍱 템플릿 모드 | 점심 메뉴, 벌칙 게임 등 사전 정의된 리스트 제공 |
-| 📸 결과 공유 기능 | 룰렛 결과를 멋진 이미지로 SNS에 공유 |
+| 앱 이름 통일 | 앱 안 제목 "럭키 룰렛"을 스토어 이름 "복불복룰렛"과 맞추기 |
+| 다중 뽑기 문구 | 여러 명 뽑을 때 멈추는 순간 "1명 중 2번째…"가 잠깐 보이는 버그 |
+| 참가자 이름 편집 | 삭제 없이 바로 수정 |
+| 여러 명 한 번에 입력 | 쉼표·줄바꿈으로 구분해 붙여넣기 |
 
 <br>
 
 ## 📦 버전
 
-**v1.0.3** (build 12) · 2026-03-17 기준
+**v1.1.0** (build 19) · 2026-11-21 출시
