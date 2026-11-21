@@ -144,4 +144,64 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get shareFailed => '공유하지 못했어요. 잠시 후 다시 시도해 주세요.';
+
+  @override
+  String get modeRoulette => '룰렛';
+
+  @override
+  String get modeLadder => '사다리';
+
+  @override
+  String get modeTeams => '팀 나누기';
+
+  @override
+  String get ladderStart => '사다리 타기';
+
+  @override
+  String get ladderWin => '당첨';
+
+  @override
+  String get ladderLose => '꽝';
+
+  @override
+  String get ladderEditHint => '아래 결과 칸을 누르면 내용을 바꿀 수 있어요';
+
+  @override
+  String get ladderEditTitle => '결과 입력';
+
+  @override
+  String get ladderResetResults => '결과 초기화';
+
+  @override
+  String get ladderResultTitle => '사다리 결과';
+
+  @override
+  String get ladderAgain => '다시 타기';
+
+  @override
+  String get teamCount => '팀 수';
+
+  @override
+  String get teamSplitButton => '팀 나누기';
+
+  @override
+  String teamName(int n) {
+    return '$n팀';
+  }
+
+  @override
+  String get teamResultTitle => '팀 나누기 결과';
+
+  @override
+  String get teamAgain => '다시 나누기';
+
+  @override
+  String shareLadderMessage(int total) {
+    return '복불복룰렛 사다리 결과 ($total명)';
+  }
+
+  @override
+  String shareTeamMessage(int total, int teams) {
+    return '복불복룰렛 팀 나누기 결과 ($total명, $teams팀)';
+  }
 }

@@ -32,21 +32,31 @@ class AppAnalytics {
   static Future<void> resultShown({
     required int participants,
     required int winners,
-  }) => _log('result_shown', {
-    'participants': participants,
-    'winners': winners,
-  });
+  }) =>
+      _log('result_shown', {'participants': participants, 'winners': winners});
 
-  static Future<void> shareTapped({required int winners}) =>
-      _log('share_tapped', {'winners': winners});
+  /// [mode] is `roulette`, `ladder` or `teams`. [participants] is always the
+  /// participant count; [winners] is only sent by the roulette.
+  static Future<void> shareTapped({
+    required String mode,
+    required int participants,
+    int? winners,
+  }) => _log('share_tapped', {
+    'mode': mode,
+    'participants': participants,
+    if (winners != null) 'winners': winners,
+  });
 
   /// [status] is the share sheet outcome: success, dismissed, unavailable
   /// or error.
-  static Future<void> shareResult(String status) async {
+  static Future<void> shareResult(
+    String status, {
+    String mode = 'roulette',
+  }) async {
     if (status == 'success' && enabled) {
       try {
         await _fa.logShare(
-          contentType: 'result_text',
+          contentType: 'result_$mode',
           itemId: 'roulette_result',
           method: 'share_sheet',
         );
@@ -54,8 +64,19 @@ class AppAnalytics {
         debugPrint('Analytics share event failed: $error');
       }
     }
-    await _log('share_outcome', {'status': status});
+    await _log('share_outcome', {'status': status, 'mode': mode});
   }
+
+  static Future<void> modeSelected(String mode) =>
+      _log('mode_select', {'mode': mode});
+
+  static Future<void> ladderStart({required int participants}) =>
+      _log('ladder_start', {'participants': participants});
+
+  static Future<void> teamSplit({
+    required int participants,
+    required int teams,
+  }) => _log('team_split', {'participants': participants, 'teams': teams});
 
   static Future<void> presetSaved({required int participants}) =>
       _log('preset_save', {'participants': participants});

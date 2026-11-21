@@ -15,21 +15,24 @@ import 'package:bokboolbok_roulette/l10n/app_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 import 'app_analytics.dart';
+import 'design_tokens.dart';
 import 'firebase_options.dart';
 import 'iap_service.dart';
+import 'modes/ladder.dart';
+import 'modes/team_split.dart';
 import 'result_share.dart';
 import 'review_prompter.dart';
 
-// ─── Design tokens ────────────────────────────────────────────────────────────
-const Color _kBg = Color(0xFFFFFFFF);
-const Color _kSurface = Color(0xFFF8F8F8);
-const Color _kCard = Color(0xFFFFFFFF);
-const Color _kBorder = Color(0xFFE0E0E0);
-const Color _kText = Color(0xFF484848);
-const Color _kTextSub = Color(0xFF727272);
-const Color _kDisabled = Color(0xFFC8C8C8);
-const Color _kAction = Color(0xFFE60012);
-const Color _kSuccess = Color(0xFF468254);
+// ─── Design tokens (values live in design_tokens.dart) ───────────────────────
+const Color _kBg = kBg;
+const Color _kSurface = kSurface;
+const Color _kCard = kCard;
+const Color _kBorder = kBorder;
+const Color _kText = kText;
+const Color _kTextSub = kTextSub;
+const Color _kDisabled = kDisabled;
+const Color _kAction = kAction;
+const Color _kSuccess = kSuccess;
 
 const SystemUiOverlayStyle _kLightSystemUiStyle = SystemUiOverlayStyle(
   statusBarColor: _kBg,
@@ -41,30 +44,8 @@ const SystemUiOverlayStyle _kLightSystemUiStyle = SystemUiOverlayStyle(
   systemNavigationBarContrastEnforced: false,
 );
 
-const List<Color> _kWheelColors = [
-  Color(0xFFEF4444),
-  Color(0xFFF97316),
-  Color(0xFFEAB308),
-  Color(0xFF22C55E),
-  Color(0xFF06B6D4),
-  Color(0xFF3B82F6),
-  Color(0xFF8B5CF6),
-  Color(0xFFD946EF),
-  Color(0xFFF43F5E),
-];
-
-// 각 휠 색상 위에서 가독성이 좋은 텍스트 색 (노랑·초록·청록은 밝아서 흰 글씨 대비가 낮음)
-const List<Color> _kWheelTextColors = [
-  Colors.white, // red
-  Colors.white, // orange
-  _kText, // yellow
-  _kText, // green
-  _kText, // cyan
-  Colors.white, // blue
-  Colors.white, // violet
-  Colors.white, // fuchsia
-  Colors.white, // rose
-];
+const List<Color> _kWheelColors = kWheelColors;
+const List<Color> _kWheelTextColors = kWheelTextColors;
 // ─────────────────────────────────────────────────────────────────────────────
 
 void main() async {
@@ -124,6 +105,9 @@ void main() async {
             backgroundColor: _kCard,
             foregroundColor: _kText,
             elevation: 0,
+            // Keep the bar white when content scrolls under it (no M3 tint).
+            scrolledUnderElevation: 0,
+            surfaceTintColor: Colors.transparent,
             centerTitle: false,
             titleTextStyle: TextStyle(
               fontSize: 21,
@@ -457,7 +441,13 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
+  // Mode tabs: 0 roulette, 1 ladder, 2 teams.
+  static const _modeNames = ['roulette', 'ladder', 'teams'];
+  late final TabController _tabController;
+  bool _modeBusy = false;
+
   // Participant input
   final TextEditingController _controller = TextEditingController();
 
@@ -488,6 +478,12 @@ class _HomeScreenState extends State<HomeScreen> {
     _confettiController = ConfettiController(
       duration: const Duration(seconds: 2),
     );
+    _tabController = TabController(length: 3, vsync: this)..addListener(() {
+      if (_tabController.indexIsChanging) return;
+      AppAnalytics.modeSelected(_modeNames[_tabController.index]);
+      FocusScope.of(context).unfocus();
+      setState(() {});
+    });
 
     _iapService = IAPService();
     _iapService.onPurchaseSuccess = (success) {
@@ -503,6 +499,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _iapService.dispose();
+    _tabController.dispose();
     _controller.dispose();
     _scrollController.dispose();
     _selected.close();
@@ -648,6 +645,16 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// Shows the interstitial (unless ad-free) and then runs [action], the same
+  /// rule the roulette spin uses.
+  void _runWithAd(VoidCallback action) {
+    FocusScope.of(context).unfocus();
+    AdHelper.showInterstitialAd(
+      action,
+      isAdFree: context.read<PlayerProvider>().isAdFree,
+    );
+  }
+
   // ── Build ───────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
@@ -739,6 +746,34 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
             ],
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(48),
+              child: IgnorePointer(
+                ignoring: _isSpinning || _modeBusy,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    border: Border(bottom: BorderSide(color: _kBorder)),
+                  ),
+                  child: TabBar(
+                    controller: _tabController,
+                    labelColor: _kAction,
+                    unselectedLabelColor: _kText,
+                    indicatorColor: _kAction,
+                    indicatorSize: TabBarIndicatorSize.label,
+                    dividerColor: Colors.transparent,
+                    labelStyle: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    tabs: [
+                      Tab(text: l10n.modeRoulette),
+                      Tab(text: l10n.modeLadder),
+                      Tab(text: l10n.modeTeams),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
           body: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -750,605 +785,647 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // ── Top section ─────────────────────────────────────────────────
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            // Input row
-                            Container(
-                              decoration: BoxDecoration(
-                                color: _kCard,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: _kBorder),
-                              ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: TextField(
-                                      controller: _controller,
-                                      onSubmitted: (_) {
-                                        provider.addPlayer(_controller.text);
-                                        _controller.clear();
-                                      },
-                                      style: const TextStyle(color: _kText),
-                                      decoration: InputDecoration(
-                                        hintText: l10n.enterParticipantName,
-                                        border: InputBorder.none,
-                                        enabledBorder: InputBorder.none,
-                                        focusedBorder: InputBorder.none,
-                                        filled: false,
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                              horizontal: 16,
-                                              vertical: 13,
-                                            ),
-                                      ),
-                                    ),
-                                  ),
-                                  GestureDetector(
-                                    onTap: () {
-                                      provider.addPlayer(_controller.text);
-                                      _controller.clear();
-                                    },
-                                    child: Container(
-                                      margin: const EdgeInsets.all(6),
-                                      padding: const EdgeInsets.all(9),
-                                      decoration: BoxDecoration(
-                                        color: _kAction,
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: const Icon(
-                                        Icons.add,
-                                        color: Colors.white,
-                                        size: 20,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-
-                            // No. of Winners stepper
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 9,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _kCard,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: _kBorder),
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    l10n.winner,
-                                    style: const TextStyle(
-                                      color: _kText,
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  Row(
-                                    children: [
-                                      _StepperButton(
-                                        icon: Icons.remove,
-                                        onPressed:
-                                            _isSpinning || spinCount <= 1
-                                                ? null
-                                                : () {
-                                                  setState(() => spinCount--);
-                                                  _resetGame();
-                                                },
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                        ),
-                                        child: Text(
-                                          '$spinCount',
-                                          style: const TextStyle(
-                                            color: _kSuccess,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 17,
-                                          ),
-                                        ),
-                                      ),
-                                      _StepperButton(
-                                        icon: Icons.add,
-                                        onPressed:
-                                            _isSpinning ||
-                                                    p.length <= 1 ||
-                                                    spinCount >= p.length - 1
-                                                ? null
-                                                : () {
-                                                  setState(() => spinCount++);
-                                                  _resetGame();
-                                                },
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-
-                            // Participants header
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  '${l10n.participants.toUpperCase()} (${p.length})',
-                                  style: const TextStyle(
-                                    color: _kTextSub,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    letterSpacing: 0.8,
-                                  ),
-                                ),
-                                if (p.isNotEmpty)
-                                  GestureDetector(
-                                    onTap: () {
-                                      for (var i = p.length - 1; i >= 0; i--) {
-                                        provider.removePlayer(i);
-                                      }
-                                    },
-                                    child: Text(
-                                      l10n.clearAll,
-                                      style: const TextStyle(
-                                        color: _kAction,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-
-                            // Participants list — 참가자가 많아도 목록은 고정 높이(내부 스크롤)로
-                            // 접어서 룰렛·스핀 버튼이 항상 화면 안에 보이도록 함
-                            if (p.isEmpty)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 10,
+                      // Participants stay fixed while a mode runs.
+                      IgnorePointer(
+                        ignoring: _isSpinning || _modeBusy,
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // Input row
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: _kCard,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: _kBorder),
                                 ),
                                 child: Row(
                                   children: [
-                                    const Icon(
-                                      Icons.person_add_alt_outlined,
-                                      color: _kTextSub,
-                                      size: 16,
+                                    Expanded(
+                                      child: TextField(
+                                        controller: _controller,
+                                        onSubmitted: (_) {
+                                          provider.addPlayer(_controller.text);
+                                          _controller.clear();
+                                        },
+                                        style: const TextStyle(color: _kText),
+                                        decoration: InputDecoration(
+                                          hintText: l10n.enterParticipantName,
+                                          border: InputBorder.none,
+                                          enabledBorder: InputBorder.none,
+                                          focusedBorder: InputBorder.none,
+                                          filled: false,
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                horizontal: 16,
+                                                vertical: 13,
+                                              ),
+                                        ),
+                                      ),
                                     ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      l10n.noParticipants,
-                                      style: const TextStyle(
-                                        color: _kTextSub,
-                                        fontStyle: FontStyle.italic,
-                                        fontSize: 13,
+                                    GestureDetector(
+                                      onTap: () {
+                                        provider.addPlayer(_controller.text);
+                                        _controller.clear();
+                                      },
+                                      child: Container(
+                                        margin: const EdgeInsets.all(6),
+                                        padding: const EdgeInsets.all(9),
+                                        decoration: BoxDecoration(
+                                          color: _kAction,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          Icons.add,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
                                       ),
                                     ),
                                   ],
                                 ),
-                              )
-                            else
-                              SizedBox(
-                                height: 176,
-                                child: Scrollbar(
-                                  thumbVisibility: p.length > 3,
-                                  child: ListView.separated(
-                                    padding: EdgeInsets.zero,
-                                    itemCount: p.length,
-                                    separatorBuilder:
-                                        (_, __) => const SizedBox(height: 6),
-                                    itemBuilder: (context, index) {
-                                      final wheelColor =
-                                          _kWheelColors[index %
-                                              _kWheelColors.length];
-                                      final onWheelColor =
-                                          _kWheelTextColors[index %
-                                              _kWheelTextColors.length];
-                                      return Container(
-                                        height: 48,
-                                        padding: const EdgeInsets.only(
-                                          left: 8,
-                                          right: 4,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: _kCard,
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                          border: Border.all(color: _kBorder),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            CircleAvatar(
-                                              radius: 16,
-                                              backgroundColor: wheelColor,
-                                              child: Text(
-                                                p[index].name.substring(0, 1),
-                                                style: TextStyle(
-                                                  color: onWheelColor,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 13,
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 10),
-                                            Expanded(
-                                              child: Text(
-                                                p[index].name,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: const TextStyle(
-                                                  color: _kText,
-                                                  fontWeight: FontWeight.w500,
-                                                  fontSize: 14,
-                                                ),
-                                              ),
-                                            ),
-                                            GestureDetector(
-                                              onTap:
-                                                  () => provider.removePlayer(
-                                                    index,
-                                                  ),
-                                              child: const SizedBox(
-                                                width: 44,
-                                                height: 44,
-                                                child: Icon(
-                                                  Icons.close,
-                                                  color: _kTextSub,
-                                                  size: 18,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
                               ),
-                            // Buttons row — 참가자 목록 바로 아래
-                            const SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                OutlinedButton.icon(
-                                  onPressed:
-                                      () => _showPresetSheet(context, l10n),
-                                  icon: const Icon(
-                                    Icons.bookmark_outline,
-                                    size: 15,
-                                    color: _kTextSub,
-                                  ),
-                                  label: Text(
-                                    l10n.presets,
-                                    style: const TextStyle(
-                                      color: _kTextSub,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                  style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 12,
-                                    ),
-                                    minimumSize: const Size(0, 44),
-                                    side: const BorderSide(color: _kBorder),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                OutlinedButton.icon(
-                                  onPressed:
-                                      () => _showHistorySheet(context, l10n),
-                                  icon: const Icon(
-                                    Icons.history,
-                                    size: 15,
-                                    color: _kTextSub,
-                                  ),
-                                  label: Text(
-                                    l10n.history,
-                                    style: const TextStyle(
-                                      color: _kTextSub,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                  style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 12,
-                                    ),
-                                    minimumSize: const Size(0, 44),
-                                    side: const BorderSide(color: _kBorder),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
+                              const SizedBox(height: 8),
 
-                      // ── Wheel section ───────────────────────────────────────────────
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            // Wheel (AspectRatio로 정사각형 고정)
-                            Stack(
-                              children: [
-                                AspectRatio(
-                                  aspectRatio: 1,
-                                  child: Stack(
-                                    children: [
-                                      // 외곽 림(rim) — 그라디언트 + 입체 그림자
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          gradient: const SweepGradient(
-                                            colors: [
-                                              _kCard,
-                                              _kBorder,
-                                              _kCard,
-                                              _kSurface,
-                                              _kCard,
-                                            ],
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(
-                                                0.07,
-                                              ),
-                                              offset: const Offset(0, 2),
-                                              blurRadius: 8,
-                                            ),
-                                          ],
+                              // Participants header
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    '${l10n.participants.toUpperCase()} (${p.length})',
+                                    style: const TextStyle(
+                                      color: _kTextSub,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0.8,
+                                    ),
+                                  ),
+                                  if (p.isNotEmpty)
+                                    GestureDetector(
+                                      onTap: () {
+                                        for (
+                                          var i = p.length - 1;
+                                          i >= 0;
+                                          i--
+                                        ) {
+                                          provider.removePlayer(i);
+                                        }
+                                      },
+                                      child: Text(
+                                        l10n.clearAll,
+                                        style: const TextStyle(
+                                          color: _kAction,
+                                          fontSize: 12,
                                         ),
                                       ),
-                                      // 휠 (림 안쪽에 패딩으로 띄움)
-                                      Padding(
-                                        padding: const EdgeInsets.all(7),
-                                        child:
-                                            p.length < 2
-                                                ? Center(
-                                                  child: Text(
-                                                    l10n.noParticipants,
-                                                    style: const TextStyle(
-                                                      color: _kTextSub,
-                                                    ),
-                                                  ),
-                                                )
-                                                : FortuneWheel(
-                                                  selected: _selected.stream,
-                                                  animateFirst: false,
-                                                  indicators: const [
-                                                    FortuneIndicator(
-                                                      alignment:
-                                                          Alignment.topCenter,
-                                                      child: TriangleIndicator(
-                                                        color: Colors.white,
-                                                        width: 28,
-                                                        height: 28,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                  physics: CircularPanPhysics(
-                                                    duration: const Duration(
-                                                      seconds: 2,
-                                                    ),
-                                                    curve: Curves.easeOutCubic,
-                                                  ),
-                                                  items:
-                                                      p.asMap().entries.map((
-                                                        e,
-                                                      ) {
-                                                        final color =
-                                                            _kWheelColors[e
-                                                                    .key %
-                                                                _kWheelColors
-                                                                    .length];
-                                                        final textColor =
-                                                            _kWheelTextColors[e
-                                                                    .key %
-                                                                _kWheelTextColors
-                                                                    .length];
-                                                        final onLightColor =
-                                                            textColor == _kText;
-                                                        // 참가자가 많을수록 조각이 좁아지므로
-                                                        // 기본 글자 크기를 줄이고, 이름이 길면 추가로 축소
-                                                        final baseFontSize =
-                                                            p.length <= 3
-                                                                ? 26.0
-                                                                : p.length <= 5
-                                                                ? 22.0
-                                                                : p.length <= 8
-                                                                ? 18.0
-                                                                : 14.0;
-                                                        return FortuneItem(
-                                                          child: FittedBox(
-                                                            fit:
-                                                                BoxFit
-                                                                    .scaleDown,
-                                                            child: Text(
-                                                              e.value.name,
-                                                              style: TextStyle(
-                                                                fontSize:
-                                                                    baseFontSize,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w900,
-                                                                color:
-                                                                    textColor,
-                                                                shadows:
-                                                                    onLightColor
-                                                                        ? const []
-                                                                        : const [
-                                                                          Shadow(
-                                                                            color:
-                                                                                Colors.black87,
-                                                                            blurRadius:
-                                                                                6,
-                                                                            offset: Offset(
-                                                                              0,
-                                                                              2,
-                                                                            ),
-                                                                          ),
-                                                                          Shadow(
-                                                                            color:
-                                                                                Colors.black54,
-                                                                            blurRadius:
-                                                                                14,
-                                                                          ),
-                                                                        ],
-                                                              ),
-                                                              textAlign:
-                                                                  TextAlign
-                                                                      .center,
-                                                            ),
-                                                          ),
-                                                          style: FortuneItemStyle(
-                                                            color: color,
-                                                            borderColor: Colors
-                                                                .white
-                                                                .withOpacity(
-                                                                  0.65,
-                                                                ),
-                                                            borderWidth: 3,
-                                                          ),
-                                                        );
-                                                      }).toList(),
-                                                  onAnimationEnd: () {
-                                                    _spinPlayer.stop();
-                                                    if (resultIndex == null ||
-                                                        resultIndex! >=
-                                                            p.length)
-                                                      return;
-                                                    final ci = resultIndex!;
-                                                    provider.addHistory(
-                                                      p[ci].name,
-                                                    );
-                                                    setState(() {
-                                                      selectedIndexes.add(ci);
-                                                      confirmedIndexes.add(ci);
-                                                    });
-                                                    if (confirmedIndexes
-                                                            .length ==
-                                                        spinCount) {
-                                                      HapticFeedback.heavyImpact();
-                                                      Future.delayed(
-                                                        const Duration(
-                                                          milliseconds: 120,
-                                                        ),
-                                                        HapticFeedback
-                                                            .heavyImpact,
-                                                      );
-                                                      Future.delayed(
-                                                        const Duration(
-                                                          milliseconds: 240,
-                                                        ),
-                                                        HapticFeedback
-                                                            .heavyImpact,
-                                                      );
-                                                      _winPlayer.play(
-                                                        AssetSource(
-                                                          'sounds/win.wav',
-                                                        ),
-                                                      );
-                                                      _confettiController
-                                                          .play();
-                                                    }
-                                                    Future.delayed(
-                                                      const Duration(
-                                                        milliseconds: 800,
-                                                      ),
-                                                      _spinNext,
-                                                    );
-                                                  },
-                                                ),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+
+                              // Participants list — 참가자가 많아도 목록은 고정 높이(내부 스크롤)로
+                              // 접어서 룰렛·스핀 버튼이 항상 화면 안에 보이도록 함
+                              if (p.isEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 10,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.person_add_alt_outlined,
+                                        color: _kTextSub,
+                                        size: 16,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        l10n.noParticipants,
+                                        style: const TextStyle(
+                                          color: _kTextSub,
+                                          fontStyle: FontStyle.italic,
+                                          fontSize: 13,
+                                        ),
                                       ),
                                     ],
                                   ),
-                                ),
-                                // Confetti
-                                Align(
-                                  alignment: Alignment.center,
-                                  child: IgnorePointer(
-                                    child: ConfettiWidget(
-                                      confettiController: _confettiController,
-                                      blastDirectionality:
-                                          BlastDirectionality.explosive,
-                                      shouldLoop: false,
-                                      emissionFrequency: 0.05,
-                                      numberOfParticles: 30,
-                                      maxBlastForce: 20,
-                                      minBlastForce: 5,
-                                      gravity: 0.3,
+                                )
+                              else
+                                SizedBox(
+                                  height: 176,
+                                  child: Scrollbar(
+                                    thumbVisibility: p.length > 3,
+                                    child: ListView.separated(
+                                      padding: EdgeInsets.zero,
+                                      itemCount: p.length,
+                                      separatorBuilder:
+                                          (_, __) => const SizedBox(height: 6),
+                                      itemBuilder: (context, index) {
+                                        final wheelColor =
+                                            _kWheelColors[index %
+                                                _kWheelColors.length];
+                                        final onWheelColor =
+                                            _kWheelTextColors[index %
+                                                _kWheelTextColors.length];
+                                        return Container(
+                                          height: 48,
+                                          padding: const EdgeInsets.only(
+                                            left: 8,
+                                            right: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: _kCard,
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            border: Border.all(color: _kBorder),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              CircleAvatar(
+                                                radius: 16,
+                                                backgroundColor: wheelColor,
+                                                child: Text(
+                                                  p[index].name.substring(0, 1),
+                                                  style: TextStyle(
+                                                    color: onWheelColor,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 13,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 10),
+                                              Expanded(
+                                                child: Text(
+                                                  p[index].name,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: const TextStyle(
+                                                    color: _kText,
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
+                                              ),
+                                              GestureDetector(
+                                                onTap:
+                                                    () => provider.removePlayer(
+                                                      index,
+                                                    ),
+                                                child: const SizedBox(
+                                                  width: 44,
+                                                  height: 44,
+                                                  child: Icon(
+                                                    Icons.close,
+                                                    color: _kTextSub,
+                                                    size: 18,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
                                     ),
                                   ),
                                 ),
-                              ],
-                            ),
-                          ],
+                              // Buttons row — 참가자 목록 바로 아래
+                              const SizedBox(height: 12),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  OutlinedButton.icon(
+                                    onPressed:
+                                        () => _showPresetSheet(context, l10n),
+                                    icon: const Icon(
+                                      Icons.bookmark_outline,
+                                      size: 15,
+                                      color: _kTextSub,
+                                    ),
+                                    label: Text(
+                                      l10n.presets,
+                                      style: const TextStyle(
+                                        color: _kTextSub,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 12,
+                                      ),
+                                      minimumSize: const Size(0, 44),
+                                      side: const BorderSide(color: _kBorder),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  OutlinedButton.icon(
+                                    onPressed:
+                                        () => _showHistorySheet(context, l10n),
+                                    icon: const Icon(
+                                      Icons.history,
+                                      size: 15,
+                                      color: _kTextSub,
+                                    ),
+                                    label: Text(
+                                      l10n.history,
+                                      style: const TextStyle(
+                                        color: _kTextSub,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 12,
+                                      ),
+                                      minimumSize: const Size(0, 44),
+                                      side: const BorderSide(color: _kBorder),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
 
-                      // ── Spin button section ──────────────────────────────────────────
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
-                        ),
-                        child: Column(
-                          children: [
-                            if (!_isSpinning && p.length >= 2)
-                              _GradientSpinButton(
-                                label: l10n.spinRoulette,
-                                focusNode: _spinButtonFocusNode,
-                                onPressed: () {
-                                  _resetGame();
-                                  _startSpinning(p);
-                                },
-                              )
-                            else if (_isSpinning)
-                              const SizedBox(
-                                width: 28,
-                                height: 28,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  color: _kSuccess,
+                      if (_tabController.index == 0) ...[
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // No. of Winners stepper
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 9,
                                 ),
-                              )
-                            else
-                              const SizedBox(height: 54),
-                            const SizedBox(height: 5),
-                            Text(
-                              _isSpinning
-                                  ? l10n.findingWinner(
-                                    confirmedIndexes.length + 1,
-                                    spinCount,
-                                  )
-                                  : l10n.selectingWinners(spinCount),
-                              style: const TextStyle(
-                                color: _kTextSub,
-                                fontSize: 12,
+                                decoration: BoxDecoration(
+                                  color: _kCard,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: _kBorder),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      l10n.winner,
+                                      style: const TextStyle(
+                                        color: _kText,
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    Row(
+                                      children: [
+                                        _StepperButton(
+                                          icon: Icons.remove,
+                                          onPressed:
+                                              _isSpinning || spinCount <= 1
+                                                  ? null
+                                                  : () {
+                                                    setState(() => spinCount--);
+                                                    _resetGame();
+                                                  },
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                          ),
+                                          child: Text(
+                                            '$spinCount',
+                                            style: const TextStyle(
+                                              color: _kSuccess,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 17,
+                                            ),
+                                          ),
+                                        ),
+                                        _StepperButton(
+                                          icon: Icons.add,
+                                          onPressed:
+                                              _isSpinning ||
+                                                      p.length <= 1 ||
+                                                      spinCount >= p.length - 1
+                                                  ? null
+                                                  : () {
+                                                    setState(() => spinCount++);
+                                                    _resetGame();
+                                                  },
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                          ],
+                              const SizedBox(height: 8),
+                            ],
+                          ),
                         ),
-                      ),
+                        // ── Wheel section ───────────────────────────────────────────────
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // Wheel (AspectRatio로 정사각형 고정)
+                              Stack(
+                                children: [
+                                  AspectRatio(
+                                    aspectRatio: 1,
+                                    child: Stack(
+                                      children: [
+                                        // 외곽 림(rim) — 그라디언트 + 입체 그림자
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            gradient: const SweepGradient(
+                                              colors: [
+                                                _kCard,
+                                                _kBorder,
+                                                _kCard,
+                                                _kSurface,
+                                                _kCard,
+                                              ],
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(
+                                                  0.07,
+                                                ),
+                                                offset: const Offset(0, 2),
+                                                blurRadius: 8,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        // 휠 (림 안쪽에 패딩으로 띄움)
+                                        Padding(
+                                          padding: const EdgeInsets.all(7),
+                                          child:
+                                              p.length < 2
+                                                  ? Center(
+                                                    child: Text(
+                                                      l10n.noParticipants,
+                                                      style: const TextStyle(
+                                                        color: _kTextSub,
+                                                      ),
+                                                    ),
+                                                  )
+                                                  : FortuneWheel(
+                                                    selected: _selected.stream,
+                                                    animateFirst: false,
+                                                    indicators: const [
+                                                      FortuneIndicator(
+                                                        alignment:
+                                                            Alignment.topCenter,
+                                                        child:
+                                                            TriangleIndicator(
+                                                              color:
+                                                                  Colors.white,
+                                                              width: 28,
+                                                              height: 28,
+                                                            ),
+                                                      ),
+                                                    ],
+                                                    physics: CircularPanPhysics(
+                                                      duration: const Duration(
+                                                        seconds: 2,
+                                                      ),
+                                                      curve:
+                                                          Curves.easeOutCubic,
+                                                    ),
+                                                    items:
+                                                        p.asMap().entries.map((
+                                                          e,
+                                                        ) {
+                                                          final color =
+                                                              _kWheelColors[e
+                                                                      .key %
+                                                                  _kWheelColors
+                                                                      .length];
+                                                          final textColor =
+                                                              _kWheelTextColors[e
+                                                                      .key %
+                                                                  _kWheelTextColors
+                                                                      .length];
+                                                          final onLightColor =
+                                                              textColor ==
+                                                              _kText;
+                                                          // 참가자가 많을수록 조각이 좁아지므로
+                                                          // 기본 글자 크기를 줄이고, 이름이 길면 추가로 축소
+                                                          final baseFontSize =
+                                                              p.length <= 3
+                                                                  ? 26.0
+                                                                  : p.length <=
+                                                                      5
+                                                                  ? 22.0
+                                                                  : p.length <=
+                                                                      8
+                                                                  ? 18.0
+                                                                  : 14.0;
+                                                          return FortuneItem(
+                                                            child: FittedBox(
+                                                              fit:
+                                                                  BoxFit
+                                                                      .scaleDown,
+                                                              child: Text(
+                                                                e.value.name,
+                                                                style: TextStyle(
+                                                                  fontSize:
+                                                                      baseFontSize,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w900,
+                                                                  color:
+                                                                      textColor,
+                                                                  shadows:
+                                                                      onLightColor
+                                                                          ? const []
+                                                                          : const [
+                                                                            Shadow(
+                                                                              color:
+                                                                                  Colors.black87,
+                                                                              blurRadius:
+                                                                                  6,
+                                                                              offset: Offset(
+                                                                                0,
+                                                                                2,
+                                                                              ),
+                                                                            ),
+                                                                            Shadow(
+                                                                              color:
+                                                                                  Colors.black54,
+                                                                              blurRadius:
+                                                                                  14,
+                                                                            ),
+                                                                          ],
+                                                                ),
+                                                                textAlign:
+                                                                    TextAlign
+                                                                        .center,
+                                                              ),
+                                                            ),
+                                                            style: FortuneItemStyle(
+                                                              color: color,
+                                                              borderColor: Colors
+                                                                  .white
+                                                                  .withOpacity(
+                                                                    0.65,
+                                                                  ),
+                                                              borderWidth: 3,
+                                                            ),
+                                                          );
+                                                        }).toList(),
+                                                    onAnimationEnd: () {
+                                                      _spinPlayer.stop();
+                                                      if (resultIndex == null ||
+                                                          resultIndex! >=
+                                                              p.length)
+                                                        return;
+                                                      final ci = resultIndex!;
+                                                      provider.addHistory(
+                                                        p[ci].name,
+                                                      );
+                                                      setState(() {
+                                                        selectedIndexes.add(ci);
+                                                        confirmedIndexes.add(
+                                                          ci,
+                                                        );
+                                                      });
+                                                      if (confirmedIndexes
+                                                              .length ==
+                                                          spinCount) {
+                                                        HapticFeedback.heavyImpact();
+                                                        Future.delayed(
+                                                          const Duration(
+                                                            milliseconds: 120,
+                                                          ),
+                                                          HapticFeedback
+                                                              .heavyImpact,
+                                                        );
+                                                        Future.delayed(
+                                                          const Duration(
+                                                            milliseconds: 240,
+                                                          ),
+                                                          HapticFeedback
+                                                              .heavyImpact,
+                                                        );
+                                                        _winPlayer.play(
+                                                          AssetSource(
+                                                            'sounds/win.wav',
+                                                          ),
+                                                        );
+                                                        _confettiController
+                                                            .play();
+                                                      }
+                                                      Future.delayed(
+                                                        const Duration(
+                                                          milliseconds: 800,
+                                                        ),
+                                                        _spinNext,
+                                                      );
+                                                    },
+                                                  ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  // Confetti
+                                  Align(
+                                    alignment: Alignment.center,
+                                    child: IgnorePointer(
+                                      child: ConfettiWidget(
+                                        confettiController: _confettiController,
+                                        blastDirectionality:
+                                            BlastDirectionality.explosive,
+                                        shouldLoop: false,
+                                        emissionFrequency: 0.05,
+                                        numberOfParticles: 30,
+                                        maxBlastForce: 20,
+                                        minBlastForce: 5,
+                                        gravity: 0.3,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // ── Spin button section ──────────────────────────────────────────
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          child: Column(
+                            children: [
+                              if (!_isSpinning && p.length >= 2)
+                                _GradientSpinButton(
+                                  label: l10n.spinRoulette,
+                                  focusNode: _spinButtonFocusNode,
+                                  onPressed: () {
+                                    _resetGame();
+                                    _startSpinning(p);
+                                  },
+                                )
+                              else if (_isSpinning)
+                                const SizedBox(
+                                  width: 28,
+                                  height: 28,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    color: _kSuccess,
+                                  ),
+                                )
+                              else
+                                const SizedBox(height: 54),
+                              const SizedBox(height: 5),
+                              Text(
+                                _isSpinning
+                                    ? l10n.findingWinner(
+                                      confirmedIndexes.length + 1,
+                                      spinCount,
+                                    )
+                                    : l10n.selectingWinners(spinCount),
+                                style: const TextStyle(
+                                  color: _kTextSub,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                            ],
+                          ),
+                        ),
+                      ] else if (_tabController.index == 1)
+                        LadderPanel(
+                          names: p.map((e) => e.name).toList(),
+                          runWithAd: _runWithAd,
+                          onBusyChanged:
+                              (busy) => setState(() => _modeBusy = busy),
+                        )
+                      else
+                        TeamSplitPanel(
+                          names: p.map((e) => e.name).toList(),
+                          runWithAd: _runWithAd,
+                          onBusyChanged:
+                              (busy) => setState(() => _modeBusy = busy),
+                        ),
                     ], // SingleChildScrollView > Column children
                   ),
                 ),
@@ -2008,6 +2085,8 @@ class _WinnerDialogState extends State<_WinnerDialog> {
     setState(() => _sharing = true);
     final ok = await shareResultText(
       message,
+      mode: 'roulette',
+      participants: widget.participantCount,
       winners: names.length,
       origin: origin,
     );

@@ -145,4 +145,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shareFailed => 'Couldn\'t share. Please try again in a moment.';
+
+  @override
+  String get modeRoulette => 'Roulette';
+
+  @override
+  String get modeLadder => 'Ladder';
+
+  @override
+  String get modeTeams => 'Teams';
+
+  @override
+  String get ladderStart => 'Start ladder';
+
+  @override
+  String get ladderWin => 'Win';
+
+  @override
+  String get ladderLose => 'Blank';
+
+  @override
+  String get ladderEditHint => 'Tap a result below to change it';
+
+  @override
+  String get ladderEditTitle => 'Edit result';
+
+  @override
+  String get ladderResetResults => 'Reset results';
+
+  @override
+  String get ladderResultTitle => 'Ladder results';
+
+  @override
+  String get ladderAgain => 'Play again';
+
+  @override
+  String get teamCount => 'Teams';
+
+  @override
+  String get teamSplitButton => 'Split into teams';
+
+  @override
+  String teamName(int n) {
+    return 'Team $n';
+  }
+
+  @override
+  String get teamResultTitle => 'Team results';
+
+  @override
+  String get teamAgain => 'Split again';
+
+  @override
+  String shareLadderMessage(int total) {
+    return 'Ladder result ($total people)';
+  }
+
+  @override
+  String shareTeamMessage(int total, int teams) {
+    return 'Team split ($total people, $teams teams)';
+  }
 }

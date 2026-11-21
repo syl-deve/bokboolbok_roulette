@@ -359,6 +359,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t share. Please try again in a moment.'**
   String get shareFailed;
+
+  /// No description provided for @modeRoulette.
+  ///
+  /// In en, this message translates to:
+  /// **'Roulette'**
+  String get modeRoulette;
+
+  /// No description provided for @modeLadder.
+  ///
+  /// In en, this message translates to:
+  /// **'Ladder'**
+  String get modeLadder;
+
+  /// No description provided for @modeTeams.
+  ///
+  /// In en, this message translates to:
+  /// **'Teams'**
+  String get modeTeams;
+
+  /// No description provided for @ladderStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start ladder'**
+  String get ladderStart;
+
+  /// No description provided for @ladderWin.
+  ///
+  /// In en, this message translates to:
+  /// **'Win'**
+  String get ladderWin;
+
+  /// No description provided for @ladderLose.
+  ///
+  /// In en, this message translates to:
+  /// **'Blank'**
+  String get ladderLose;
+
+  /// No description provided for @ladderEditHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a result below to change it'**
+  String get ladderEditHint;
+
+  /// No description provided for @ladderEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit result'**
+  String get ladderEditTitle;
+
+  /// No description provided for @ladderResetResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset results'**
+  String get ladderResetResults;
+
+  /// No description provided for @ladderResultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ladder results'**
+  String get ladderResultTitle;
+
+  /// No description provided for @ladderAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Play again'**
+  String get ladderAgain;
+
+  /// No description provided for @teamCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Teams'**
+  String get teamCount;
+
+  /// No description provided for @teamSplitButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Split into teams'**
+  String get teamSplitButton;
+
+  /// No description provided for @teamName.
+  ///
+  /// In en, this message translates to:
+  /// **'Team {n}'**
+  String teamName(int n);
+
+  /// No description provided for @teamResultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Team results'**
+  String get teamResultTitle;
+
+  /// No description provided for @teamAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Split again'**
+  String get teamAgain;
+
+  /// No description provided for @shareLadderMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Ladder result ({total} people)'**
+  String shareLadderMessage(int total);
+
+  /// No description provided for @shareTeamMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Team split ({total} people, {teams} teams)'**
+  String shareTeamMessage(int total, int teams);
 }
 
 class _AppLocalizationsDelegate

@@ -14,19 +14,25 @@ const _kStoreUrl =
 /// Returns false if the share sheet could not be opened.
 Future<bool> shareResultText(
   String message, {
-  required int winners,
+  required String mode,
+  required int participants,
+  int? winners,
   Rect? origin,
 }) async {
-  AppAnalytics.shareTapped(winners: winners);
+  AppAnalytics.shareTapped(
+    mode: mode,
+    participants: participants,
+    winners: winners,
+  );
   try {
     final result = await SharePlus.instance.share(
       ShareParams(text: '$message\n$_kStoreUrl', sharePositionOrigin: origin),
     );
-    AppAnalytics.shareResult(result.status.name);
+    AppAnalytics.shareResult(result.status.name, mode: mode);
     return result.status != ShareResultStatus.unavailable;
   } catch (error) {
     debugPrint('Result share failed: $error');
-    AppAnalytics.shareResult('error');
+    AppAnalytics.shareResult('error', mode: mode);
     return false;
   }
 }

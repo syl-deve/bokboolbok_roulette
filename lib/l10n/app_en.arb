@@ -73,5 +73,47 @@
     }
   },
   "shareInvite": "Try it yourself:",
-  "shareFailed": "Couldn't share. Please try again in a moment."
+  "shareFailed": "Couldn't share. Please try again in a moment.",
+  "modeRoulette": "Roulette",
+  "modeLadder": "Ladder",
+  "modeTeams": "Teams",
+  "ladderStart": "Start ladder",
+  "ladderWin": "Win",
+  "ladderLose": "Blank",
+  "ladderEditHint": "Tap a result below to change it",
+  "ladderEditTitle": "Edit result",
+  "ladderResetResults": "Reset results",
+  "ladderResultTitle": "Ladder results",
+  "ladderAgain": "Play again",
+  "teamCount": "Teams",
+  "teamSplitButton": "Split into teams",
+  "teamName": "Team {n}",
+  "@teamName": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "teamResultTitle": "Team results",
+  "teamAgain": "Split again",
+  "shareLadderMessage": "Ladder result ({total} people)",
+  "@shareLadderMessage": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "shareTeamMessage": "Team split ({total} people, {teams} teams)",
+  "@shareTeamMessage": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "teams": {
+        "type": "int"
+      }
+    }
+  }
 }

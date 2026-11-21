@@ -144,4 +144,64 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get shareFailed => '分享失败，请稍后再试。';
+
+  @override
+  String get modeRoulette => '轮盘';
+
+  @override
+  String get modeLadder => '爬梯子';
+
+  @override
+  String get modeTeams => '分组';
+
+  @override
+  String get ladderStart => '开始爬梯子';
+
+  @override
+  String get ladderWin => '中奖';
+
+  @override
+  String get ladderLose => '未中';
+
+  @override
+  String get ladderEditHint => '点击下方结果即可修改内容';
+
+  @override
+  String get ladderEditTitle => '编辑结果';
+
+  @override
+  String get ladderResetResults => '重置结果';
+
+  @override
+  String get ladderResultTitle => '爬梯子结果';
+
+  @override
+  String get ladderAgain => '再来一次';
+
+  @override
+  String get teamCount => '组数';
+
+  @override
+  String get teamSplitButton => '开始分组';
+
+  @override
+  String teamName(int n) {
+    return '第$n组';
+  }
+
+  @override
+  String get teamResultTitle => '分组结果';
+
+  @override
+  String get teamAgain => '重新分组';
+
+  @override
+  String shareLadderMessage(int total) {
+    return '爬梯子结果（共$total人）';
+  }
+
+  @override
+  String shareTeamMessage(int total, int teams) {
+    return '分组结果（共$total人，$teams组）';
+  }
 }

@@ -144,4 +144,64 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get shareFailed => 'シェアできませんでした。しばらくしてからもう一度お試しください。';
+
+  @override
+  String get modeRoulette => 'ルーレット';
+
+  @override
+  String get modeLadder => 'あみだくじ';
+
+  @override
+  String get modeTeams => 'チーム分け';
+
+  @override
+  String get ladderStart => 'あみだくじを引く';
+
+  @override
+  String get ladderWin => '当たり';
+
+  @override
+  String get ladderLose => 'はずれ';
+
+  @override
+  String get ladderEditHint => '下の結果をタップすると内容を変えられます';
+
+  @override
+  String get ladderEditTitle => '結果を入力';
+
+  @override
+  String get ladderResetResults => '結果をリセット';
+
+  @override
+  String get ladderResultTitle => 'あみだくじの結果';
+
+  @override
+  String get ladderAgain => 'もう一度';
+
+  @override
+  String get teamCount => 'チーム数';
+
+  @override
+  String get teamSplitButton => 'チームに分ける';
+
+  @override
+  String teamName(int n) {
+    return 'チーム$n';
+  }
+
+  @override
+  String get teamResultTitle => 'チーム分けの結果';
+
+  @override
+  String get teamAgain => 'もう一度分ける';
+
+  @override
+  String shareLadderMessage(int total) {
+    return 'あみだくじの結果（$total人）';
+  }
+
+  @override
+  String shareTeamMessage(int total, int teams) {
+    return 'チーム分けの結果（$total人・$teamsチーム）';
+  }
 }
