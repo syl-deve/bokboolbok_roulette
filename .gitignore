@@ -51,3 +51,6 @@ app.*.map.json
 # Google API Key / Client Secrets
 client_secret_989787212235-bssptnpbh0s8brba50qgl7971mt5rbrp.apps.googleusercontent.com.json
 admob_discord_alert.gs
+
+# impeccable skill binary (reinstalled with the skill; too large for git)
+.claude/skills/impeccable/scripts/bin/
